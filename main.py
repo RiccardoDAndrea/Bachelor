@@ -77,30 +77,24 @@ st.divider()
 
 st.markdown("## Data Description")  
 st.dataframe(df.describe())
+st.divider()
 
-
-
-# Remove columns with remove_columns:
-
-st.markdown('Your DataFrame columns')
-st.dataframe(df.columns, use_container_width=True)
-st.write('Remove your DataFrame columns')
 
 st.subheader("Remove Columns:")
 selected_columns = st.multiselect("Choose your columns", df.columns)
 df = df.drop(selected_columns, axis=1)
 st.dataframe(df)
+st.divider()
 
 
-
-st.markdown('Your DataFrame data types')
+st.subheader('Your DataFrame data types')
 st.dataframe(df.dtypes, use_container_width=True)
 st.write('Change your DataFrame data types')
 
 st.subheader("Change your Data Types:")
 selected_columns = st.multiselect("Choose your columns", df.columns, key='change_data_type')
 selected_dtype = st.selectbox("Choose a data type", ["int64", "float64", "string", "datetime64[ns]"])
-
+st.divider()
 
 
 options_of_charts = st.multiselect(
