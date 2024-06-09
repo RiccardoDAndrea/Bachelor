@@ -1,5 +1,7 @@
 import streamlit as st
+from streamlit_lottie import st_lottie
 import pandas as pd
+import requests
 import numpy as np
 import keras
 import tensorflow as tf
@@ -10,6 +12,27 @@ import plotly.express as px
 import plotly.graph_objs as go
 import plotly.io as pio
 from matplotlib import pyplot as plt
+
+
+def load_lottieurl(url:str):
+    """ 
+    The follwing function request a url from the homepage
+    lottie files if status is 200 he will return
+    instand we can use this func to implement lottie files for 
+    our Homepage
+    """
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
+
+no_X_variable_lottie = load_lottieurl('https://assets10.lottiefiles.com/packages/lf20_ydo1amjm.json')
+wrong_data_type_ML = load_lottieurl('https://assets5.lottiefiles.com/packages/lf20_2frpohrv.json')
+
+
+
+
+
 # Title of the main page
 st.title('Recurrent Neural Network')
 
@@ -127,16 +150,16 @@ Target_variable_col, X_variables_col = st.columns(2)
 Target_variable = Target_variable_col.selectbox('Which is your Target Variable (Y)', options=df.columns, key='LR Sklearn Target Variable')
 X_variables = X_variables_col.multiselect('Which are your Variables (X)', options=df.columns, key='LR Sklearn X Variables')
 # Überprüfung des Datentyps der ausgewählten Variablen
-if uploaded_file[Target_variable].dtype == str or uploaded_file[Target_variable].dtype == str :
+if df[Target_variable].dtype == str or df[Target_variable].dtype == str :
     st.warning('Ups, wrong data type for Target variable!')
     st_lottie(wrong_data_type_ML, width=700, height=300, quality='low', loop=False)
-    st.dataframe(uploaded_file.dtypes, use_container_width=True)
+    st.dataframe(df.dtypes, use_container_width=True)
     st.stop()
 
-if any(uploaded_file[x].dtype == object for x in X_variables):
+if any(df[x].dtype == object for x in X_variables):
     st.warning('Ups, wrong data type for X variables!')
     st_lottie(wrong_data_type_ML, width=700, height=300, quality='low', loop=False)
-    st.dataframe(uploaded_file.dtypes, use_container_width=True)
+    st.dataframe(df.dtypes, use_container_width=True)
     st.stop()
 
 
