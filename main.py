@@ -13,7 +13,7 @@ import plotly.graph_objs as go
 import plotly.io as pio
 from matplotlib import pyplot as plt
 
-
+####<--- Lottie Files --->####
 def load_lottieurl(url:str):
     """ 
     The follwing function request a url from the homepage
@@ -28,54 +28,61 @@ def load_lottieurl(url:str):
 
 no_X_variable_lottie = load_lottieurl('https://assets10.lottiefiles.com/packages/lf20_ydo1amjm.json')
 wrong_data_type_ML = load_lottieurl('https://assets5.lottiefiles.com/packages/lf20_2frpohrv.json')
-
-
+no_data_lottie = load_lottieurl('https://lottie.host/08c7a53a-a678-4758-9246-7300ca6c3c3f/sLoAgnhaN1.json')
+####<--- Lottie Files --->####
 
 
 
 # Title of the main page
+st.set_page_config(page_title='Recurrent Neural Network', page_icon=':robot:', layout='wide')
 st.title('Recurrent Neural Network')
 
-# Title of the sidebar
-# Title for the sidebar
 
 st.sidebar.title('Recurrent Neural Network')
-with st.sidebar:
-    # File uploader in the sidebar
-    file_uploader = st.file_uploader('Upload your dataset', type=['csv'])
+file_uploader = st.sidebar.file_uploader('Upload your dataset', type=['csv'])
     
-    # Check if the file has been uploaded
-    if file_uploader is None:
-        st.info('Please upload your dataset')
-        st.stop()
-    else:
-        # Expander for upload settings
-        with st.expander('Upload settings'):
-            separator, thousands = st.columns(2)
-            with separator:
-                selected_separator = st.selectbox('Choose value separator:', (",", ";", ".", ":"))
-            with thousands:
-                selected_thousands = st.selectbox('Choose thousands separator:', (".", ","), key='thousands')
-            
-            decimal, __ = st.columns(2)
-            with decimal:
-                selected_decimal = st.selectbox('Choose decimal separator:', (".", ","), key='decimal')
-            with __:
-                selected_unicode = st.checkbox('Use Unicode', value=False)
+# Check if the file has been uploaded
+if file_uploader is None:
+    st.sidebar.info('Please upload your dataset')
+    st.markdown("""
+        Welcome to the Recurrent Neural Network
+        This is a simple example of how to create a Recurrent Neural 
+        Network using TensorFlow and Keras
+        Please upload your dataset to get started
+        """)
+    st_lottie(no_data_lottie)
+    st.stop()
+else:
+    # Expander for upload settings
+    with st.sidebar.expander('Upload settings'):
+        separator, thousands = st.columns(2)
+        with separator:
+            selected_separator = st.selectbox('Choose value separator:', (",", ";", ".", ":"))
+        with thousands:
+            selected_thousands = st.selectbox('Choose thousands separator:', (".", ","), key='thousands')
+        
+        decimal, __ = st.columns(2)
+        with decimal:
+            selected_decimal = st.selectbox('Choose decimal separator:', (".", ","), key='decimal')
+        with __:
+            selected_unicode = st.checkbox('Use Unicode', value=False)
+
+   
 
         # Read the uploaded file into a DataFrame with the selected separators
-        df = pd.read_csv(file_uploader, sep=selected_separator, 
-                         thousands=selected_thousands, decimal=selected_decimal)
+df = pd.read_csv(file_uploader, sep=selected_separator, 
+                    thousands=selected_thousands, decimal=selected_decimal)
 
 
     
 
 
 # Display the DataFrame
+st.subheader("Your DataFrame: ")
 st.dataframe(df)
 st.divider()
 
-st.markdown("## Data Description")  
+st.subheader("Data Description: ")  
 st.dataframe(df.describe())
 st.divider()
 
@@ -87,7 +94,7 @@ st.dataframe(df)
 st.divider()
 
 
-st.subheader('Your DataFrame data types')
+st.subheader('Your DataFrame data types: ')
 st.dataframe(df.dtypes, use_container_width=True)
 st.write('Change your DataFrame data types')
 
@@ -97,12 +104,9 @@ selected_dtype = st.selectbox("Choose a data type", ["int64", "float64", "string
 st.divider()
 
 
-options_of_charts = st.multiselect(
-                    'What Graphs do you want?', ('Barchart', 
-                                                'Linechart', 
-                                                'Scatterchart', 
-                                                'Histogramm',
-                                                'Boxplot'))
+options_of_charts = st.multiselect('What Graphs do you want?', ('Linechart', 
+                                                                'Scatterchart',
+                                                                'Correlation Matrix'))
 for chart_type in options_of_charts:
 
     if chart_type == 'Scatterchart':
@@ -116,8 +120,6 @@ for chart_type in options_of_charts:
 
         st.plotly_chart(scatter_plot_1,use_container_width=True)
         # Erstellen des Histogramms mit Plotly
-        fig_scatter = go.Figure(data=scatter_plot_1)
-        # Umwandeln des Histogramm-Graphen in eine Bilddatei
         plt.tight_layout()
         st.divider()
     
@@ -135,20 +137,67 @@ for chart_type in options_of_charts:
 
         line_plot_1 = px.line(df, x=x_axis_val_line, y=y_axis_vals_line)
         st.plotly_chart(line_plot_1)
-        st.divider()
+    
+    elif chart_type == 'Correlation Matrix':
+        corr_matrix = df.select_dtypes(include=['float64', 
+                                                'int64']).corr()
 
 
-st.markdown("Create your own Reccurent Neural Network")
-st.write('Prepare your data for training')
+        # Erstellung der Heatmap mit Plotly
+        fig_correlation = px.imshow(corr_matrix.values, 
+                                    color_continuous_scale = 'purples', 
+                                    zmin = -1, 
+                                    zmax = 1,
+                                    x = corr_matrix.columns, 
+                                    y = corr_matrix.index,
+                                    labels = dict( x = "Columns", 
+                                                y = "Columns", 
+                                                color = "Correlation"))
+
+        # Anpassung der Plot-Parameter
+        fig_correlation.update_layout(
+                                    title='Correlation Matrix',
+                                    font=dict(
+                                    color='grey'
+            )
+        )
+
+        fig_correlation.update_traces(  showscale = False, 
+                                        colorbar_thickness = 25)
+
+        # Hinzufügen der numerischen Werte als Text
+        annotations = []
+        for i, row in enumerate(corr_matrix.values):
+            for j, val in enumerate(row):
+                annotations.append(dict(x=j, y=i, text=str(round(val, 2)), showarrow=False, font=dict(size=16)))
+        fig_correlation.update_layout(annotations=annotations)
+
+        # Anzeigen der Plot
+        st.plotly_chart(fig_correlation, use_container_width= True)
+        fig_correlationplot = go.Figure(data=fig_correlation)
+
+
+
+
+
+
+
+
+st.subheader("Create your own Reccurent Neural Network: ")
 Target_variable_col, X_variables_col = st.columns(2)
+
+
+
 Target_variable = Target_variable_col.selectbox('Which is your Target Variable (Y)', options=df.columns, key='LR Sklearn Target Variable')
 X_variables = X_variables_col.multiselect('Which are your Variables (X)', options=df.columns, key='LR Sklearn X Variables')
+
 # Überprüfung des Datentyps der ausgewählten Variablen
 if df[Target_variable].dtype == str or df[Target_variable].dtype == str :
     st.warning('Ups, wrong data type for Target variable!')
     st_lottie(wrong_data_type_ML, width=700, height=300, quality='low', loop=False)
     st.dataframe(df.dtypes, use_container_width=True)
     st.stop()
+
 
 if any(df[x].dtype == object for x in X_variables):
     st.warning('Ups, wrong data type for X variables!')
@@ -161,6 +210,9 @@ if len(X_variables) == 0 :
     st_lottie(no_X_variable_lottie)
     st.warning('X Variable is empty!')
     st.stop()
+
+
+
 
 # # Prepare the data for training
 # X = df.iloc[:, :-1].values
