@@ -14,12 +14,14 @@ import plotly.io as pio
 from matplotlib import pyplot as plt
 
 ####<--- Lottie Files --->####
-def load_lottieurl(url:str):
+def load_lottieurl(url:str): 
     """ 
-    The follwing function request a url from the homepage
-    lottie files if status is 200 he will return
-    instand we can use this func to implement lottie files for 
-    our Homepage
+    A funcztion to load lottie files from a url
+
+    Input:
+    - A URL of the lottie animation
+    Output:
+    - A lottie animation
     """
     r = requests.get(url)
     if r.status_code != 200:
@@ -29,6 +31,8 @@ def load_lottieurl(url:str):
 no_X_variable_lottie = load_lottieurl('https://assets10.lottiefiles.com/packages/lf20_ydo1amjm.json')
 wrong_data_type_ML = load_lottieurl('https://assets5.lottiefiles.com/packages/lf20_2frpohrv.json')
 no_data_lottie = load_lottieurl('https://lottie.host/08c7a53a-a678-4758-9246-7300ca6c3c3f/sLoAgnhaN1.json')
+value_is_zero_in_train_size = load_lottieurl('https://assets7.lottiefiles.com/packages/lf20_usmfx6bp.json')
+
 ####<--- Lottie Files --->####
 
 
@@ -42,139 +46,204 @@ st.sidebar.title('Recurrent Neural Network')
 file_uploader = st.sidebar.file_uploader('Upload your dataset', type=['csv'])
     
 # Check if the file has been uploaded
-if file_uploader is None:
+if file_uploader is None:           # If no file is uploaded
     st.sidebar.info('Please upload your dataset')
     st.markdown("""
         Welcome to the Recurrent Neural Network
-        This is a simple example of how to create a Recurrent Neural 
-        Network using TensorFlow and Keras
+        This is a simple example of how to create 
+        a Recurrent Neural Network using TensorFlow 
+        and Keras.
         Please upload your dataset to get started
         """)
+    
     st_lottie(no_data_lottie)
-    st.stop()
+    st.stop()       # Stop the script so that we dont get an error
+
 else:
-    # Expander for upload settings
+    # Expander for upload settings.
     with st.sidebar.expander('Upload settings'):
         separator, thousands = st.columns(2)
         with separator:
-            selected_separator = st.selectbox('Choose value separator:', (",", ";", ".", ":"))
+            selected_separator = st.selectbox('value separator:', (",", ";", ".", ":"))
         with thousands:
-            selected_thousands = st.selectbox('Choose thousands separator:', (".", ","), key='thousands')
+            selected_thousands = st.selectbox('thousands separator:', (".", ","), key='thousands')
         
-        decimal, __ = st.columns(2)
+        decimal, unicode = st.columns(2)
         with decimal:
-            selected_decimal = st.selectbox('Choose decimal separator:', (".", ","), key='decimal')
-        with __:
-            selected_unicode = st.checkbox('Use Unicode', value=False)
+            selected_decimal = st.selectbox('decimal separator:', (".", ","), key='decimal')
+        with unicode:
+            selected_unicode = st.selectbox('file encoding:', ('utf-8', 'utf-16', 'utf-32', 'iso-8859-1', 'cp1252'))
 
    
 
         # Read the uploaded file into a DataFrame with the selected separators
 df = pd.read_csv(file_uploader, sep=selected_separator, 
-                    thousands=selected_thousands, decimal=selected_decimal)
+                thousands=selected_thousands, decimal=selected_decimal)
 
 
     
 
-
+### General Information about the data
 # Display the DataFrame
 st.subheader("Your DataFrame: ")
-st.dataframe(df)
+st.dataframe(df, use_container_width=True)
 st.divider()
 
-st.subheader("Data Description: ")  
-st.dataframe(df.describe())
-st.divider()
+with st.expander('Data Description'):
+    st.subheader("Data Description: ")  
+    st.dataframe(df.describe())
+    st.divider()
+
+### General Information about the data end
 
 
-st.subheader("Remove Columns:")
-selected_columns = st.multiselect("Choose your columns", df.columns)
-df = df.drop(selected_columns, axis=1)
-st.dataframe(df)
-st.divider()
+### Data Cleaning
+with st.expander('Data Cleaning'):
+    st.subheader('How to proceed with NaN values')
+    st.dataframe(df.isna().sum(), use_container_width=True) # get the sum of NaN values in the DataFrame
+    checkbox_nan_values = st.checkbox("Do you want to replace the NaN values to proceed?", key="disabled")
+
+    if checkbox_nan_values:
+        numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
+        missing_values = st.selectbox(
+            "How do you want to replace the NaN values in the numeric columns?",
+            key="visibility",
+            options=["None",
+                    "with Median", 
+                    "with Mean", 
+                    "with Minimum value", 
+                    "with Maximum value", 
+                    "with Zero"])
+
+        if 'with Median' in missing_values:
+            uploaded_file_median = df[numeric_columns].median()
+            df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_median)
+            st.write('##### You have succesfully change the NaN values :blue[with the Median]')
+            st.dataframe(df.isna().sum(), use_container_width=True)
+            st.divider()
+            
+        elif 'with Mean' in missing_values:
+            uploaded_file_mean = df[numeric_columns].mean()
+            df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_mean)
+            st.markdown(' ##### You have succesfully change the NaN values :blue[ with the Mean]')
+            st.dataframe(df.isna().sum(), use_container_width=True)
+            st.divider()
+
+        elif 'with Minimum value' in missing_values:
+            uploaded_file_min = df[numeric_columns].min()
+            df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_min)
+            st.write('##### You have succesfully change the NaN values :blue[with the minimum values]')
+            st.dataframe(df.isna().sum(), use_container_width=True)
+            st.divider()
+            
+        elif 'with Maximum value' in missing_values:
+            uploaded_file_max = df[numeric_columns].max()
+            df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_max)
+            st.write('##### You have succesfully change the NaN values :blue[with the maximums values]')
+            st.dataframe(df.isna().sum(), use_container_width=True)
+            st.divider()
+            
+        elif 'with Zero' in missing_values:
+            numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
+            df[numeric_columns] = df[numeric_columns].fillna(0)
+            st.write('##### You have successfully changed :blue[the NaN values to 0.]')
+            st.dataframe(df.isna().sum(), use_container_width=True)
+            st.divider()
+
+    st.divider()
+    st.subheader("Remove Columns:")
+    selected_columns = st.multiselect("Choose your columns", df.columns)
+    df = df.drop(selected_columns, axis=1)
+    st.dataframe(df)
+    st.divider()
 
 
-st.subheader('Your DataFrame data types: ')
-st.dataframe(df.dtypes, use_container_width=True)
-st.write('Change your DataFrame data types')
+    st.subheader('Your DataFrame data types: ')
+    st.dataframe(df.dtypes, use_container_width=True)
+    st.write('Change your DataFrame data types')
 
-st.subheader("Change your Data Types:")
-selected_columns = st.multiselect("Choose your columns", df.columns, key='change_data_type')
-selected_dtype = st.selectbox("Choose a data type", ["int64", "float64", "string", "datetime64[ns]"])
-st.divider()
+    st.subheader("Change your Data Types:")
+    selected_columns = st.multiselect("Choose your columns", df.columns, key='change_data_type')
+    selected_dtype = st.selectbox("Choose a data type", ["int64", "float64", "string", "datetime64[ns]"])
+    st.divider()
 
+    ### Data Cleaning end 
 
-options_of_charts = st.multiselect('What Graphs do you want?', ('Linechart', 
-                                                                'Scatterchart',
-                                                                'Correlation Matrix'))
-for chart_type in options_of_charts:
+### Data Visualization
 
-    if chart_type == 'Scatterchart':
-        st.write('You can freely choose your :blue[Scatter plot]')
-        x_axis_val_col_, y_axis_val_col_ = st.columns(2)
-        with x_axis_val_col_:
-            x_axis_val = st.selectbox('Select X-Axis Value', options=df.columns, key='x_axis_selectbox')
-        with y_axis_val_col_:
-            y_axis_val = st.selectbox('Select Y-Axis Value', options=df.columns, key='y_axis_selectbox')
-        scatter_plot_1 = px.scatter(df, x=x_axis_val,y=y_axis_val)
+with st.expander('Data Visualization'):
 
-        st.plotly_chart(scatter_plot_1,use_container_width=True)
-        # Erstellen des Histogramms mit Plotly
-        plt.tight_layout()
-        st.divider()
-    
-    elif chart_type == 'Linechart':
-        st.markdown('You can freely choose your :blue[Linechart] :chart_with_upwards_trend:')
+    options_of_charts = st.multiselect('What Graphs do you want?', ('Linechart', 
+                                                                    'Scatterchart',
+                                                                    'Correlation Matrix'))
+    for chart_type in options_of_charts:
 
-        col3,col4 = st.columns(2)
+        if chart_type == 'Scatterchart':
+            st.write('You can freely choose your :blue[Scatter plot]')
+            x_axis_val_col_, y_axis_val_col_ = st.columns(2)
+            with x_axis_val_col_:
+                x_axis_val = st.selectbox('Select X-Axis Value', options=df.columns, key='x_axis_selectbox')
+            with y_axis_val_col_:
+                y_axis_val = st.selectbox('Select Y-Axis Value', options=df.columns, key='y_axis_selectbox')
+            scatter_plot_1 = px.scatter(df, x=x_axis_val,y=y_axis_val)
+
+            st.plotly_chart(scatter_plot_1,use_container_width=True)
+            # Erstellen des Histogramms mit Plotly
+            plt.tight_layout()
+            st.divider()
         
-        with col3:
-            x_axis_val_line = st.selectbox('Select X-Axis Value', options=df.columns,
-                                        key='x_axis_line_multiselect')
-        with col4:
-            y_axis_vals_line = st.multiselect('Select :blue[Y-Axis Values]', options=df.columns,
-                                            key='y_axis_line_multiselect')
+        elif chart_type == 'Linechart':
+            st.markdown('You can freely choose your :blue[Linechart] :chart_with_upwards_trend:')
 
-        line_plot_1 = px.line(df, x=x_axis_val_line, y=y_axis_vals_line)
-        st.plotly_chart(line_plot_1)
-    
-    elif chart_type == 'Correlation Matrix':
-        corr_matrix = df.select_dtypes(include=['float64', 
-                                                'int64']).corr()
+            col3,col4 = st.columns(2)
+            
+            with col3:
+                x_axis_val_line = st.selectbox('Select X-Axis Value', options=df.columns,
+                                            key='x_axis_line_multiselect')
+            with col4:
+                y_axis_vals_line = st.multiselect('Select :blue[Y-Axis Values]', options=df.columns,
+                                                key='y_axis_line_multiselect')
+
+            line_plot_1 = px.line(df, x=x_axis_val_line, y=y_axis_vals_line)
+            st.plotly_chart(line_plot_1)
+        
+        elif chart_type == 'Correlation Matrix':
+            corr_matrix = df.select_dtypes(include=['float64', 
+                                                    'int64']).corr()
 
 
-        # Erstellung der Heatmap mit Plotly
-        fig_correlation = px.imshow(corr_matrix.values, 
-                                    color_continuous_scale = 'purples', 
-                                    zmin = -1, 
-                                    zmax = 1,
-                                    x = corr_matrix.columns, 
-                                    y = corr_matrix.index,
-                                    labels = dict( x = "Columns", 
-                                                y = "Columns", 
-                                                color = "Correlation"))
+            # Erstellung der Heatmap mit Plotly
+            fig_correlation = px.imshow(corr_matrix.values, 
+                                        color_continuous_scale = 'purples', 
+                                        zmin = -1, 
+                                        zmax = 1,
+                                        x = corr_matrix.columns, 
+                                        y = corr_matrix.index,
+                                        labels = dict( x = "Columns", 
+                                                    y = "Columns", 
+                                                    color = "Correlation"))
 
-        # Anpassung der Plot-Parameter
-        fig_correlation.update_layout(
-                                    title='Correlation Matrix',
-                                    font=dict(
-                                    color='grey'
+            # Anpassung der Plot-Parameter
+            fig_correlation.update_layout(
+                                        title='Correlation Matrix',
+                                        font=dict(
+                                        color='grey'
+                )
             )
-        )
 
-        fig_correlation.update_traces(  showscale = False, 
-                                        colorbar_thickness = 25)
+            fig_correlation.update_traces(  showscale = False, 
+                                            colorbar_thickness = 25)
 
-        # Hinzufügen der numerischen Werte als Text
-        annotations = []
-        for i, row in enumerate(corr_matrix.values):
-            for j, val in enumerate(row):
-                annotations.append(dict(x=j, y=i, text=str(round(val, 2)), showarrow=False, font=dict(size=16)))
-        fig_correlation.update_layout(annotations=annotations)
+            # Hinzufügen der numerischen Werte als Text
+            annotations = []
+            for i, row in enumerate(corr_matrix.values):
+                for j, val in enumerate(row):
+                    annotations.append(dict(x=j, y=i, text=str(round(val, 2)), showarrow=False, font=dict(size=16)))
+            fig_correlation.update_layout(annotations=annotations)
 
-        # Anzeigen der Plot
-        st.plotly_chart(fig_correlation, use_container_width= True)
-        fig_correlationplot = go.Figure(data=fig_correlation)
+            # Anzeigen der Plot
+            st.plotly_chart(fig_correlation, use_container_width= True)
+            fig_correlationplot = go.Figure(data=fig_correlation)
 
 
 
@@ -184,12 +253,14 @@ for chart_type in options_of_charts:
 
 
 st.subheader("Create your own Reccurent Neural Network: ")
+
 Target_variable_col, X_variables_col = st.columns(2)
 
+Target_variable = Target_variable_col.selectbox('Which is your Target Variable (Y)', 
+                                                options=df.columns, key='RNN Variable')
 
-
-Target_variable = Target_variable_col.selectbox('Which is your Target Variable (Y)', options=df.columns, key='LR Sklearn Target Variable')
-X_variables = X_variables_col.multiselect('Which are your Variables (X)', options=df.columns, key='LR Sklearn X Variables')
+X_variables = X_variables_col.multiselect('Which are your Variables (X)', 
+                                          options=df.columns, key='RNN X Variables')
 
 # Überprüfung des Datentyps der ausgewählten Variablen
 if df[Target_variable].dtype == str or df[Target_variable].dtype == str :
@@ -209,6 +280,41 @@ if any(df[x].dtype == object for x in X_variables):
 if len(X_variables) == 0 :
     st_lottie(no_X_variable_lottie)
     st.warning('X Variable is empty!')
+    st.stop()
+
+total_size = 100
+train_size = 60
+test_size = 40
+
+train_size_col, test_size_col = st.columns(2)
+
+with train_size_col:
+    train_size = st.slider('Train Size', min_value=0, max_value=total_size, value=train_size, key= 'Sklearn train size')
+    test_size = total_size - train_size
+
+with test_size_col:
+    test_size = st.slider('Test Size', min_value=0, max_value=total_size, value=test_size, key= 'Sklearn test size')
+    train_size = total_size - test_size
+
+# Relevant damit das Skript weiter läuft und nicht immer in Fehlermeldungen läuft
+if train_size <= 0:
+    st_lottie(value_is_zero_in_train_size, width=700, height=300, quality='low', loop=False)
+    st.warning('Train size should be greater than zero.')
+    st.stop()
+
+elif test_size <= 0:
+    st.warning('Test size should be greater than zero.')
+    st_lottie(value_is_zero_in_train_size, width=700, height=300, quality='low', loop=False)
+    st.stop()
+
+elif train_size + test_size > len(df):
+    st.warning('Train size and Test size exceed the number of samples in the dataset.')
+    st_lottie(value_is_zero_in_train_size, width=700, height=300, quality='low', loop=False)
+    st.stop()
+    
+elif train_size == len(df):
+    st.warning('Train size cannot be equal to the number of samples in the dataset.')
+    st_lottie(value_is_zero_in_train_size, width=700, height=300, quality='low', loop=False)
     st.stop()
 
 
