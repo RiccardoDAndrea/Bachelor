@@ -8,6 +8,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
+from sklearn.model_selection import train_test_split
 import plotly.express as px
 import plotly.graph_objs as go
 import plotly.io as pio
@@ -262,6 +263,15 @@ Target_variable = Target_variable_col.selectbox('Which is your Target Variable (
 X_variables = X_variables_col.multiselect('Which are your Variables (X)', 
                                           options=df.columns, key='RNN X Variables')
 
+
+X = df.drop(columns=[Target_variable])
+# Create the target variable 'y' as the 'Open' column
+y = df[Target_variable]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.25, random_state=1) # 0.25 x 0.8 = 0.2
+
 # Überprüfung des Datentyps der ausgewählten Variablen
 if df[Target_variable].dtype == str or df[Target_variable].dtype == str :
     st.warning('Ups, wrong data type for Target variable!')
@@ -269,19 +279,18 @@ if df[Target_variable].dtype == str or df[Target_variable].dtype == str :
     st.dataframe(df.dtypes, use_container_width=True)
     st.stop()
 
-
 if any(df[x].dtype == object for x in X_variables):
     st.warning('Ups, wrong data type for X variables!')
     st_lottie(wrong_data_type_ML, width=700, height=300, quality='low', loop=False)
     st.dataframe(df.dtypes, use_container_width=True)
     st.stop()
 
-
 if len(X_variables) == 0 :
     st_lottie(no_X_variable_lottie)
     st.warning('X Variable is empty!')
     st.stop()
 
+# default parameters
 total_size = 100
 train_size = 60
 test_size = 40
@@ -311,11 +320,12 @@ elif train_size + test_size > len(df):
     st.warning('Train size and Test size exceed the number of samples in the dataset.')
     st_lottie(value_is_zero_in_train_size, width=700, height=300, quality='low', loop=False)
     st.stop()
-    
+
 elif train_size == len(df):
     st.warning('Train size cannot be equal to the number of samples in the dataset.')
     st_lottie(value_is_zero_in_train_size, width=700, height=300, quality='low', loop=False)
     st.stop()
+
 
 
 
