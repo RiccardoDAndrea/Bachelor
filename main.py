@@ -3,7 +3,6 @@ from streamlit_lottie import st_lottie
 import pandas as pd
 import requests
 import numpy as np
-import keras
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
@@ -14,7 +13,9 @@ import plotly.graph_objs as go
 import plotly.io as pio
 from matplotlib import pyplot as plt
 
-####<--- Lottie Files --->####
+########################################################################################
+#############  L O T T I E _ F I L E S #################################################
+########################################################################################
 def load_lottieurl(url:str): 
     """ 
     A funcztion to load lottie files from a url
@@ -34,7 +35,11 @@ wrong_data_type_ML = load_lottieurl('https://assets5.lottiefiles.com/packages/lf
 no_data_lottie = load_lottieurl('https://lottie.host/08c7a53a-a678-4758-9246-7300ca6c3c3f/sLoAgnhaN1.json')
 value_is_zero_in_train_size = load_lottieurl('https://assets7.lottiefiles.com/packages/lf20_usmfx6bp.json')
 
-####<--- Lottie Files --->####
+########################################################################################
+#############  L O T T I E _ F I L E S #################################################
+########################################################################################
+
+
 
 
 
@@ -81,6 +86,9 @@ else:
 df = pd.read_csv(file_uploader, sep=selected_separator, 
                 thousands=selected_thousands, decimal=selected_decimal)
 
+df['Date'] = pd.to_datetime(df['Date'])  # converting to date time object
+if 'Date' in df.columns:
+    df.set_index('Date', inplace=True)
 
     
 
@@ -90,15 +98,25 @@ st.subheader("Your DataFrame: ")
 st.dataframe(df, use_container_width=True)
 st.divider()
 
+##########################################################################################
+#############  D a t a _ d e s c r i b e #################################################
+##########################################################################################
+
 with st.expander('Data Description'):
     st.subheader("Data Description: ")  
     st.dataframe(df.describe())
     st.divider()
 
-### General Information about the data end
+##########################################################################################
+#############  D a t a _ d e s c r i b e #################################################
+##########################################################################################
 
 
-### Data Cleaning
+
+##################################################################################################
+#############  D a t a _ C l e a n i n g _ e n d #################################################
+##################################################################################################
+
 with st.expander('Data Cleaning'):
     st.subheader('How to proceed with NaN values')
     st.dataframe(df.isna().sum(), use_container_width=True) # get the sum of NaN values in the DataFrame
@@ -168,9 +186,16 @@ with st.expander('Data Cleaning'):
     selected_dtype = st.selectbox("Choose a data type", ["int64", "float64", "string", "datetime64[ns]"])
     st.divider()
 
-    ### Data Cleaning end 
+##################################################################################################
+#############  D a t a _ C l e a n i n g #################################################
+##################################################################################################
 
-### Data Visualization
+
+
+####################################################################################################
+#############  D a t a _ V i s u a l i z a t i o n #################################################
+####################################################################################################
+
 
 with st.expander('Data Visualization'):
 
@@ -246,110 +271,105 @@ with st.expander('Data Visualization'):
             st.plotly_chart(fig_correlation, use_container_width= True)
             fig_correlationplot = go.Figure(data=fig_correlation)
 
+####################################################################################################
+#############  D a t a _ V i s u a l i z a t i o n #################################################
+####################################################################################################
 
 
 
+
+
+####################################################################################################
+############# R e c c u r e n t _ N e u r a l _ N e t w o r k ######################################
+####################################################################################################
 
 
 
 
 st.subheader("Create your own Reccurent Neural Network: ")
 
-Target_variable_col, X_variables_col = st.columns(2)
-
-Target_variable = Target_variable_col.selectbox('Which is your Target Variable (Y)', 
+Sequentiual_variable_col, X_variables_col = st.columns(2)
+Sequentiual_variable = Sequentiual_variable_col.selectbox('Enter your Sequentiual Data', 
                                                 options=df.columns, key='RNN Variable')
-
-X_variables = X_variables_col.multiselect('Which are your Variables (X)', 
+X_variables = X_variables_col.selectbox('Enter your Forcasting Column', 
                                           options=df.columns, key='RNN X Variables')
 
 
-X = df.drop(columns=[Target_variable])
-# Create the target variable 'y' as the 'Open' column
-y = df[Target_variable]
+X = df[X_variables]
+y = df[Sequentiual_variable]
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
-
-X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.25, random_state=1) # 0.25 x 0.8 = 0.2
-
+# Abfangen von Fehlern
 # Überprüfung des Datentyps der ausgewählten Variablen
-if df[Target_variable].dtype == str or df[Target_variable].dtype == str :
+if X.dtype in ['object', 'string', 'datetime64[ns]']:
     st.warning('Ups, wrong data type for Target variable!')
-    st_lottie(wrong_data_type_ML, width=700, height=300, quality='low', loop=False)
+    st_lottie('wrong_data_type_ML.json', width=700, height=300, quality='low', loop=False)
     st.dataframe(df.dtypes, use_container_width=True)
     st.stop()
 
-if any(df[x].dtype == object for x in X_variables):
-    st.warning('Ups, wrong data type for X variables!')
-    st_lottie(wrong_data_type_ML, width=700, height=300, quality='low', loop=False)
-    st.dataframe(df.dtypes, use_container_width=True)
-    st.stop()
 
-if len(X_variables) == 0 :
-    st_lottie(no_X_variable_lottie)
-    st.warning('X Variable is empty!')
-    st.stop()
 
-# default parameters
+
+# Default parameters
 total_size = 100
 train_size = 60
-test_size = 40
+# test_size = 40
+validation_size = 20
 
-train_size_col, test_size_col = st.columns(2)
+# Layout columns
+train_size_col, validation_size_col = st.columns(2)
 
+# Train Size slider
 with train_size_col:
-    train_size = st.slider('Train Size', min_value=0, max_value=total_size, value=train_size, key= 'Sklearn train size')
-    test_size = total_size - train_size
+    train_size = st.slider('Train Size', min_value=0, max_value=total_size, 
+                           value=train_size, key='train_size')
+    # Adjust test_size and validation_size to ensure total_size is maintained
 
-with test_size_col:
-    test_size = st.slider('Test Size', min_value=0, max_value=total_size, value=test_size, key= 'Sklearn test size')
-    train_size = total_size - test_size
+# Test Size slider
+with validation_size_col:
+    validation_size = st.slider('Validation Size', min_value=0, max_value=total_size, 
+                          value=validation_size, key='validation_size')
+    # Adjust train_size and validation_size to ensure total_size is maintained
 
-# Relevant damit das Skript weiter läuft und nicht immer in Fehlermeldungen läuft
+# X = df[X_variables]
+# y = df[Target_variable]
+
+
+X_train, y_train = X[:int(len(df)*train_size/100)], y[:int(len(df)*train_size/100)] # 60% of the data -> 
+
+X_val, y_val = X[:int(len(df)*validation_size/100)], y[:int(len(df)*validation_size/100)]
+
+
+# 1. determination of the data length.
+# 2. We multiply the values from the slider by the length of the df and divide it by 100. and convert it into an int instead of a float
+
+
+# Check conditions
 if train_size <= 0:
-    st_lottie(value_is_zero_in_train_size, width=700, height=300, quality='low', loop=False)
     st.warning('Train size should be greater than zero.')
     st.stop()
 
-elif test_size <= 0:
-    st.warning('Test size should be greater than zero.')
-    st_lottie(value_is_zero_in_train_size, width=700, height=300, quality='low', loop=False)
+# elif test_size <= 0:
+#     st.warning('Test size should be greater than zero.')
+#     st.stop()
+
+# elif train_size + test_size > total_size:
+#     st.warning('Train size and Test size exceed the total size.')
+#     st.stop()
+
+elif validation_size > train_size:
+    st.warning('Validation size should not exceed Train size.')
     st.stop()
 
-elif train_size + test_size > len(df):
-    st.warning('Train size and Test size exceed the number of samples in the dataset.')
-    st_lottie(value_is_zero_in_train_size, width=700, height=300, quality='low', loop=False)
-    st.stop()
-
-elif train_size == len(df):
-    st.warning('Train size cannot be equal to the number of samples in the dataset.')
-    st_lottie(value_is_zero_in_train_size, width=700, height=300, quality='low', loop=False)
+#Assuming df is your dataset
+elif train_size >= len(df):  # Uncomment if you have a dataset to check against
+    st.warning('Train size cannot be greater than or equal to the number of samples in the dataset')
     st.stop()
 
 
 
 
 
-# # Prepare the data for training
-# X = df.iloc[:, :-1].values
-# y = df.iloc[:, -1].values
 
-# # Create a Sequential model
-# model = Sequential()
-# model.add(Dense(12, input_dim=X.shape[1], activation='relu'))
-# model.add(Dense(8, activation='relu'))
-# model.add(Dense(1, activation='sigmoid'))
-
-# # Compile the model
-# model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-# # Train the model
-# model.fit(X, y, epochs=150, batch_size=10)
-
-# # Evaluate the model
-# _, accuracy = model.evaluate(X, y)
-
-# # Display the accuracy
-# st.write('Accuracy: %.2f' % (accuracy*100))
-
-    
+####################################################################################################
+############# R e c c u r e n t _ N e u r a l _ N e t w o r k ######################################
+###################################################################################################
