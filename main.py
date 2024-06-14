@@ -5,14 +5,16 @@ import requests
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, SimpleRNN, LSTM, GRU
 from tensorflow.keras.optimizers import Adam
+from keras.models import Sequential
+from keras.layers import SimpleRNN, Dropout, Input
 from sklearn.model_selection import train_test_split
 import plotly.express as px
 import plotly.graph_objs as go
 import plotly.io as pio
 from matplotlib import pyplot as plt
-
+from sklearn.preprocessing import MinMaxScaler
 ########################################################################################
 #############  L O T T I E _ F I L E S #################################################
 ########################################################################################
@@ -86,9 +88,11 @@ else:
 df = pd.read_csv(file_uploader, sep=selected_separator, 
                 thousands=selected_thousands, decimal=selected_decimal)
 
-df['Date'] = pd.to_datetime(df['Date'])  # converting to date time object
-if 'Date' in df.columns:
-    df.set_index('Date', inplace=True)
+# Spalte 'Date' in datetime-Objekte konvertieren
+df['Date'] = pd.to_datetime(df['Date'])
+
+
+
 
     
 
@@ -300,13 +304,17 @@ y = df[Sequentiual_variable]
 
 # Abfangen von Fehlern
 # Überprüfung des Datentyps der ausgewählten Variablen
-if X.dtype in ['object', 'string', 'datetime64[ns]']:
+if X.dtype == 'object' or X.dtype == 'string' or X.dtype == 'datetime64[ns]':
     st.warning('Ups, wrong data type for Target variable!')
     st_lottie('wrong_data_type_ML.json', width=700, height=300, quality='low', loop=False)
     st.dataframe(df.dtypes, use_container_width=True)
     st.stop()
 
-
+if X.dtype == 'object' or X.dtype == 'string' or X.dtype == 'datetime64[ns]':
+    st.warning('Ups, wrong data type for Target variable!')
+    st_lottie('wrong_data_type_ML.json', width=700, height=300, quality='low', loop=False)
+    st.dataframe(df.dtypes, use_container_width=True)
+    st.stop()
 
 
 # Default parameters
@@ -338,7 +346,6 @@ X_train, y_train = X[:int(len(df)*train_size/100)], y[:int(len(df)*train_size/10
 
 X_val, y_val = X[:int(len(df)*validation_size/100)], y[:int(len(df)*validation_size/100)]
 
-
 # 1. determination of the data length.
 # 2. We multiply the values from the slider by the length of the df and divide it by 100. and convert it into an int instead of a float
 
@@ -364,8 +371,37 @@ elif validation_size > train_size:
 elif train_size >= len(df):  # Uncomment if you have a dataset to check against
     st.warning('Train size cannot be greater than or equal to the number of samples in the dataset')
     st.stop()
+    
+st.write(X_train.shape)
+# initializing the RNN
+regressor = Sequential()
+# defining the input shape
+regressor.add(Input(shape=(X_train.shape)))
+# adding first RNN layer and dropout regularization
+regressor.add(SimpleRNN(units=50, activation="tanh", return_sequences=True))
+regressor.add(Dropout(0.2))
 
+# adding second RNN layer and dropout regularization
+regressor.add(SimpleRNN(units=50, activation="tanh", return_sequences=True))
+regressor.add(Dropout(0.2))
 
+# adding third RNN layer and dropout regularization
+regressor.add(SimpleRNN(units=50, activation="tanh", return_sequences=True))
+regressor.add(Dropout(0.2))
+
+# adding fourth RNN layer and dropout regularization
+regressor.add(SimpleRNN(units=50))
+regressor.add(Dropout(0.2))
+
+# adding the output layer
+regressor.add(Dense(units=1))
+
+# compiling RNN
+regressor.compile(optimizer="adam", loss="mean_squared_error", metrics=["accuracy"])
+
+# fitting the RNN
+history = regressor.fit(X_train, y_train, epochs=5, batch_size=32)
+st.write('RNN Model has been trained successfully')
 
 
 
