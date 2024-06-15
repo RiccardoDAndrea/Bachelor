@@ -15,6 +15,20 @@ import plotly.graph_objs as go
 import plotly.io as pio
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
+
+# function
+def to_sequences(dataset, seq_size=1):
+    x = []
+    y = []
+
+    for i in range(len(dataset)-seq_size-1):
+        #print(i)
+        window = dataset[i:(i+seq_size), 0]
+        x.append(window)
+        y.append(dataset[i+seq_size, 0])
+        
+    return np.array(x),np.array(y)
+
 ########################################################################################
 #############  L O T T I E _ F I L E S #################################################
 ########################################################################################
@@ -296,7 +310,6 @@ with st.expander('Recurrent Neural Network'):
     forecast_Var = st.selectbox('Enter your Column for the RNN forecast:', 
                                                     options=df.columns, key='RNN Variable')
     y = df[forecast_Var]
-
     # Abfangen von Fehlern
     # Überprüfung des Datentyps der ausgewählten Variablen
     if y.dtype == 'object' or y.dtype == 'string' or y.dtype == 'datetime64[ns]':
@@ -325,7 +338,8 @@ with st.expander('Recurrent Neural Network'):
             st.write("Shape:", str(dataset.shape))
         with dtype_col:
             st.write("Dtype:", str(dataset.dtype))
-        st.dataframe(dataset, use_container_width=True)  # Anzeigen des Datensatzes in einem DataFrame
+        st.dataframe(pd.DataFrame(dataset, columns=[forecast_Var]), 
+                     use_container_width=True, hide_index=True)
     
     with Scaled_dataset_col:
     # Skalieren der Daten
@@ -340,7 +354,8 @@ with st.expander('Recurrent Neural Network'):
             st.write("Dtype:", str(dataset.dtype))
         # Ausgabe der skalierten Daten
         
-        st.dataframe(dataset, use_container_width=True)  # Anzeigen des skalierten Datensatzes in einem DataFrame
+        st.dataframe(pd.DataFrame(dataset, columns=[forecast_Var]), 
+                        use_container_width=True, hide_index=True)  # Anzeigen des skalierten Datensatzes in einem DataFrame
     st.info('The dataset has been successfully scaled!')
 
     total_size = 100  # Total size of the dataset
@@ -383,9 +398,13 @@ with st.expander('Recurrent Neural Network'):
     train, test = dataset[:train_size_actual, :], dataset[train_size_actual:, :]
 
     # Display the sizes and shapes
-    st.write(f"Total dataset size: {len(dataset)}")
-    st.write(f"Training set size: {train.shape}")
-    st.write(f"Test set size: {test.shape}")
+    # len_dataset_col, train_shape_col, test_shape_col = st.columns(3)
+    # with len_dataset_col:
+    #     st.markdown(f"**Total dataset size: {len(dataset)}**")
+    # with train_shape_col:
+    #     st.write(f"**Training set size: {train.shape}**")
+    # with test_shape_col:
+    #     st.write(f"**Test set size: {test.shape}**")
     
     # Bin size slider for histogram
 
@@ -398,9 +417,45 @@ with st.expander('Recurrent Neural Network'):
     # Bin size slider and histogram for test set
     with test_hist:
         test_bin_size = st.slider('Test Bin Size', min_value=1, max_value=100, step=1, value=10, format='%d', key='test_bin_size')
-        hist_plot_2 = px.histogram(train, x=test[:, 0], nbins=test_bin_size, labels={'x': 'Feature 1', 'y': 'Count'}, title='Training Set Histogram')
+        hist_plot_2 = px.histogram(test, x=test[:, 0], nbins=test_bin_size, labels={'x': 'Feature 1', 'y': 'Count'}, title='Training Set Histogram')
         st.plotly_chart(hist_plot_2)
     
+
+    seq_size_col, seq_size_info_col= st.columns(2)
+    with seq_size_col:
+        seq_size = st.number_input("Insert a number for the sequence size", min_value=1, max_value=100, value=15, step=1)
+    with seq_size_info_col:
+        st.info("Sequence size is the number of time steps to look back like a memory of the model.")
+    
+
+    trainX, trainY = to_sequences(train, seq_size)
+    testX, testY = to_sequences(test, seq_size)
+    train_x_col, train_y_col = st.columns(2)
+    with train_x_col:
+        st.dataframe(trainX, use_container_width=True)
+    with train_y_col:
+        st.dataframe(trainY, use_container_width=True)
+    test_x_col, test_y_col = st.columns(2)
+    with test_x_col:
+        st.dataframe(testX, use_container_width=True)
+    with test_y_col:
+        st.dataframe(testY, use_container_width=True)
+
+
+    st.write("Shape of training set: {}".format(trainX.shape))
+    st.write("Shape of test set: {}".format(testX.shape))
+
+    trainX = np.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
+    testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
+
+    # Create the model
+    model = Sequential()
+    
+
+
+
+
+
 
     ####################################################################################################
     ############# R e c c u r e n t _ N e u r a l _ N e t w o r k ######################################
