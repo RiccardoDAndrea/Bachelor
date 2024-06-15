@@ -89,7 +89,11 @@ df = pd.read_csv(file_uploader, sep=selected_separator,
                 thousands=selected_thousands, decimal=selected_decimal)
 
 # Spalte 'Date' in datetime-Objekte konvertieren
+# Sicherstellen, dass die 'Date'-Spalte im DateTime-Format ist
 df['Date'] = pd.to_datetime(df['Date'])
+
+# # Extrahieren Sie das Datum ohne die Zeitkomponente
+df['Date'] = df['Date'].dt.date
 
 
 
@@ -280,132 +284,125 @@ with st.expander('Data Visualization'):
 ####################################################################################################
 
 
-
-
-
 ####################################################################################################
 ############# R e c c u r e n t _ N e u r a l _ N e t w o r k ######################################
 ####################################################################################################
 
 
 
+with st.expander('Recurrent Neural Network'):
+    st.subheader("Create your own Reccurent Neural Network: ")
 
-st.subheader("Create your own Reccurent Neural Network: ")
+    forecast_Var = st.selectbox('Enter your Column for the RNN forecast:', 
+                                                    options=df.columns, key='RNN Variable')
+    y = df[forecast_Var]
 
-Sequentiual_variable_col, X_variables_col = st.columns(2)
-Sequentiual_variable = Sequentiual_variable_col.selectbox('Enter your Sequentiual Data', 
-                                                options=df.columns, key='RNN Variable')
-X_variables = X_variables_col.selectbox('Enter your Forcasting Column', 
-                                          options=df.columns, key='RNN X Variables')
+    # Abfangen von Fehlern
+    # Überprüfung des Datentyps der ausgewählten Variablen
+    if y.dtype == 'object' or y.dtype == 'string' or y.dtype == 'datetime64[ns]':
+        st.warning('Ups, wrong data type for Target variable!')
+        #st_lottie('wrong_data_type_ML.json', width=700, height=300, quality='low', loop=False)
+        st.dataframe(df.dtypes, use_container_width=True)
+        st.stop()
 
+    if y.dtype == 'object' or y.dtype == 'string' or y.dtype == 'datetime64[ns]':
+        st.warning('Ups, wrong data type for Target variable!')
+        #st_lottie('wrong_data_type_ML.json', width=700, height=300, quality='low', loop=False)
+        st.dataframe(df.dtypes, use_container_width=True)
+        st.stop()
 
-X = df[X_variables]
-y = df[Sequentiual_variable]
+    dataset = y.values
+    dataset = dataset.astype('float32')  # Konvertieren der Daten in float32
+    dataset = np.reshape(dataset, (-1, 1))  # Reshape der Daten in eine 2D-Form
 
-# Abfangen von Fehlern
-# Überprüfung des Datentyps der ausgewählten Variablen
-if X.dtype == 'object' or X.dtype == 'string' or X.dtype == 'datetime64[ns]':
-    st.warning('Ups, wrong data type for Target variable!')
-    st_lottie('wrong_data_type_ML.json', width=700, height=300, quality='low', loop=False)
-    st.dataframe(df.dtypes, use_container_width=True)
-    st.stop()
+    # Ausgabe der Form des Datensatzes
+    Datset_col, Scaled_dataset_col = st.columns(2)
+    with Datset_col:
+        st.subheader("Dataset Column:" , forecast_Var)
 
-if X.dtype == 'object' or X.dtype == 'string' or X.dtype == 'datetime64[ns]':
-    st.warning('Ups, wrong data type for Target variable!')
-    st_lottie('wrong_data_type_ML.json', width=700, height=300, quality='low', loop=False)
-    st.dataframe(df.dtypes, use_container_width=True)
-    st.stop()
-
-
-# Default parameters
-total_size = 100
-train_size = 60
-# test_size = 40
-validation_size = 20
-
-# Layout columns
-train_size_col, validation_size_col = st.columns(2)
-
-# Train Size slider
-with train_size_col:
-    train_size = st.slider('Train Size', min_value=0, max_value=total_size, 
-                           value=train_size, key='train_size')
-    # Adjust test_size and validation_size to ensure total_size is maintained
-
-# Test Size slider
-with validation_size_col:
-    validation_size = st.slider('Validation Size', min_value=0, max_value=total_size, 
-                          value=validation_size, key='validation_size')
-    # Adjust train_size and validation_size to ensure total_size is maintained
-
-# X = df[X_variables]
-# y = df[Target_variable]
-
-
-X_train, y_train = X[:int(len(df)*train_size/100)], y[:int(len(df)*train_size/100)] # 60% of the data -> 
-
-X_val, y_val = X[:int(len(df)*validation_size/100)], y[:int(len(df)*validation_size/100)]
-
-# 1. determination of the data length.
-# 2. We multiply the values from the slider by the length of the df and divide it by 100. and convert it into an int instead of a float
-
-
-# Check conditions
-if train_size <= 0:
-    st.warning('Train size should be greater than zero.')
-    st.stop()
-
-# elif test_size <= 0:
-#     st.warning('Test size should be greater than zero.')
-#     st.stop()
-
-# elif train_size + test_size > total_size:
-#     st.warning('Train size and Test size exceed the total size.')
-#     st.stop()
-
-elif validation_size > train_size:
-    st.warning('Validation size should not exceed Train size.')
-    st.stop()
-
-#Assuming df is your dataset
-elif train_size >= len(df):  # Uncomment if you have a dataset to check against
-    st.warning('Train size cannot be greater than or equal to the number of samples in the dataset')
-    st.stop()
+        dtype_col, shape_col = st.columns(2)
+        with shape_col:
+            st.write("Shape:", str(dataset.shape))
+        with dtype_col:
+            st.write("Dtype:", str(dataset.dtype))
+        st.dataframe(dataset, use_container_width=True)  # Anzeigen des Datensatzes in einem DataFrame
     
-st.write(X_train.shape)
-# initializing the RNN
-regressor = Sequential()
-# defining the input shape
-regressor.add(Input(shape=(X_train.shape)))
-# adding first RNN layer and dropout regularization
-regressor.add(SimpleRNN(units=50, activation="tanh", return_sequences=True))
-regressor.add(Dropout(0.2))
+    with Scaled_dataset_col:
+    # Skalieren der Daten
+        st.subheader('Scaled Data')
+        scaler = MinMaxScaler(feature_range=(0, 1))  # Auch QuantileTransformer kann ausprobiert werden
+        dataset = scaler.fit_transform(dataset)
+        
+        scaled_dtype_col, scaled_shape_col = st.columns(2)
+        with scaled_shape_col:
+            st.write("Shape:", str(dataset.shape))
+        with scaled_dtype_col:
+            st.write("Dtype:", str(dataset.dtype))
+        # Ausgabe der skalierten Daten
+        
+        st.dataframe(dataset, use_container_width=True)  # Anzeigen des skalierten Datensatzes in einem DataFrame
+    st.info('The dataset has been successfully scaled!')
 
-# adding second RNN layer and dropout regularization
-regressor.add(SimpleRNN(units=50, activation="tanh", return_sequences=True))
-regressor.add(Dropout(0.2))
+    total_size = 100  # Total size of the dataset
 
-# adding third RNN layer and dropout regularization
-regressor.add(SimpleRNN(units=50, activation="tanh", return_sequences=True))
-regressor.add(Dropout(0.2))
+    # Initial split values
+    initial_train_size = 60
+    initial_test_size = 40
 
-# adding fourth RNN layer and dropout regularization
-regressor.add(SimpleRNN(units=50))
-regressor.add(Dropout(0.2))
+    # Columns for sliders
+    train_size_col, test_size_col = st.columns(2)
 
-# adding the output layer
-regressor.add(Dense(units=1))
+    # Synchronize sliders
+    with train_size_col:
+        train_size = st.slider(
+            'Train Size (%)',
+            min_value=0,
+            max_value=total_size,
+            value=initial_train_size,
+            key='train_size_slider'
+        )
 
-# compiling RNN
-regressor.compile(optimizer="adam", loss="mean_squared_error", metrics=["accuracy"])
+    with test_size_col:
+        test_size = st.slider(
+            'Test Size (%)',
+            min_value=0,
+            max_value=total_size,
+            value=total_size - train_size,
+            key='test_size_slider'
+        )
 
-# fitting the RNN
-history = regressor.fit(X_train, y_train, epochs=5, batch_size=32)
-st.write('RNN Model has been trained successfully')
+    # Ensure that train_size and test_size sum to total_size
+    if train_size + test_size != total_size:
+        test_size = total_size - train_size
 
+    # Convert percentage to actual sizes
+    train_size_actual = int(len(dataset) * train_size / 100)
+    test_size_actual = len(dataset) - train_size_actual
 
+    # Split the dataset
+    train, test = dataset[:train_size_actual, :], dataset[train_size_actual:, :]
 
+    # Display the sizes and shapes
+    st.write(f"Total dataset size: {len(dataset)}")
+    st.write(f"Training set size: {train.shape}")
+    st.write(f"Test set size: {test.shape}")
+    
+    # Bin size slider for histogram
 
-####################################################################################################
-############# R e c c u r e n t _ N e u r a l _ N e t w o r k ######################################
-###################################################################################################
+    train_hist, test_hist = st.columns(2)
+    with train_hist:
+        train_bin_size = st.slider('Train Bin Size', min_value=1, max_value=100, step=1, value=10, format='%d', key='train_bin_size')
+        hist_plot_1 = px.histogram(train, x=train[:, 0], nbins=train_bin_size, labels={'x': 'Feature 1', 'y': 'Count'}, title='Training Set Histogram')
+        st.plotly_chart(hist_plot_1)
+
+    # Bin size slider and histogram for test set
+    with test_hist:
+        test_bin_size = st.slider('Test Bin Size', min_value=1, max_value=100, step=1, value=10, format='%d', key='test_bin_size')
+        hist_plot_2 = px.histogram(train, x=test[:, 0], nbins=test_bin_size, labels={'x': 'Feature 1', 'y': 'Count'}, title='Training Set Histogram')
+        st.plotly_chart(hist_plot_2)
+    
+
+    ####################################################################################################
+    ############# R e c c u r e n t _ N e u r a l _ N e t w o r k ######################################
+    ###################################################################################################
+
