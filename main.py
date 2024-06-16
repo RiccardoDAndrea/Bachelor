@@ -1,19 +1,16 @@
 import streamlit as st
 from streamlit_lottie import st_lottie
 import pandas as pd
-import requests
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, SimpleRNN, LSTM, GRU
-from tensorflow.keras.optimizers import Adam
 from keras.models import Sequential
-from keras.layers import SimpleRNN, Dropout, Input
-from sklearn.model_selection import train_test_split
+from keras.layers import Dense
+from keras.layers import LSTM, Flatten
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error
 import plotly.express as px
 import plotly.graph_objs as go
 import plotly.io as pio
-from matplotlib import pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 
 # function
