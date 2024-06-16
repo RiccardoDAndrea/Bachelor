@@ -125,7 +125,6 @@ st.divider()
 with st.expander('Data Description'):
     st.subheader("Data Description: ")  
     st.dataframe(df.describe())
-    st.divider()
 
 ##########################################################################################
 #############  D a t a _ d e s c r i b e #################################################
@@ -159,36 +158,30 @@ with st.expander('Data Cleaning'):
             df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_median)
             st.write('##### You have succesfully change the NaN values :blue[with the Median]')
             st.dataframe(df.isna().sum(), use_container_width=True)
-            st.divider()
             
         elif 'with Mean' in missing_values:
             uploaded_file_mean = df[numeric_columns].mean()
             df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_mean)
             st.markdown(' ##### You have succesfully change the NaN values :blue[ with the Mean]')
             st.dataframe(df.isna().sum(), use_container_width=True)
-            st.divider()
 
         elif 'with Minimum value' in missing_values:
             uploaded_file_min = df[numeric_columns].min()
             df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_min)
             st.write('##### You have succesfully change the NaN values :blue[with the minimum values]')
             st.dataframe(df.isna().sum(), use_container_width=True)
-            st.divider()
             
         elif 'with Maximum value' in missing_values:
             uploaded_file_max = df[numeric_columns].max()
             df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_max)
             st.write('##### You have succesfully change the NaN values :blue[with the maximums values]')
             st.dataframe(df.isna().sum(), use_container_width=True)
-            st.divider()
             
         elif 'with Zero' in missing_values:
             numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
             df[numeric_columns] = df[numeric_columns].fillna(0)
             st.write('##### You have successfully changed :blue[the NaN values to 0.]')
             st.dataframe(df.isna().sum(), use_container_width=True)
-            st.divider()
-
     st.divider()
     st.subheader("Remove Columns:")
     selected_columns = st.multiselect("Choose your columns", df.columns)
@@ -196,15 +189,50 @@ with st.expander('Data Cleaning'):
     st.dataframe(df)
     st.divider()
 
-
     st.subheader('Your DataFrame data types: ')
     st.dataframe(df.dtypes, use_container_width=True)
-    st.write('Change your DataFrame data types')
-
     st.subheader("Change your Data Types:")
-    selected_columns = st.multiselect("Choose your columns", df.columns, key='change_data_type')
-    selected_dtype = st.selectbox("Choose a data type", ["int64", "float64", "string", "datetime64[ns]"])
+    
+    change_data_type_col_1, change_data_type_col_2 = st.columns(2)
+
+    # Column 1: Select columns and data type
+    with change_data_type_col_1:
+        selected_columns_1 = st.multiselect("Choose your columns", df.columns, key='change_data_type_1')
+        selected_dtype_1 = st.selectbox("Choose a data type", ["None","int64", "float64", "string", "datetime64[ns]"], key='selectbox_1')
+
+    # Column 2: Select columns and data type
+    with change_data_type_col_2:
+        selected_columns_2 = st.multiselect("Choose your columns", df.columns, key='change_data_type_2')
+        selected_dtype_2 = st.selectbox("Choose a data type", ["None", "int64", "float64", "string", "datetime64[ns]"], key='selectbox_2')
+
+    # Function to change data types
+    def change_data_types(dataframe, columns, dtype):
+        if columns:
+            try:
+                if dtype == "int64":
+                    dataframe[columns] = dataframe[columns].apply(pd.to_numeric, errors='coerce').astype('Int64')
+                elif dtype == "float64":
+                    dataframe[columns] = dataframe[columns].apply(pd.to_numeric, errors='coerce').astype('float64')
+                elif dtype == "string":
+                    dataframe[columns] = dataframe[columns].astype('string')
+                elif dtype == "datetime64[ns]":
+                    dataframe[columns] = dataframe[columns].apply(pd.to_datetime, errors='coerce')
+            except Exception as e:
+                st.error(f"Error converting columns {columns} to {dtype}: {e}")
+
+    # Apply data type changes
+    change_data_types(df, selected_columns_1, selected_dtype_1)
+    change_data_types(df, selected_columns_2, selected_dtype_2)
+
     st.divider()
+
+    # Display the modified DataFrame
+    st.subheader('Modified DataFrame data types:')
+    st.dataframe(df.dtypes, use_container_width=True)
+
+    # Display the DataFrame
+    st.subheader('Modified DataFrame:')
+    st.dataframe(df)
 
 ##################################################################################################
 #############  D a t a _ C l e a n i n g #################################################
@@ -218,24 +246,28 @@ with st.expander('Data Cleaning'):
 
 
 with st.expander('Data Visualization'):
+    st.subheader('Data Visualization')
 
-    options_of_charts = st.multiselect('What Graphs do you want?', ('Linechart', 
-                                                                    'Scatterchart',
-                                                                    'Correlation Matrix'))
+    options_of_charts = st.multiselect('What Graphs do you want?', 
+                                       ('Linechart', 
+                                        'Scatterchart',
+                                        'Correlation Matrix'))
     for chart_type in options_of_charts:
 
         if chart_type == 'Scatterchart':
+
             st.write('You can freely choose your :blue[Scatter plot]')
             x_axis_val_col_, y_axis_val_col_ = st.columns(2)
+            
             with x_axis_val_col_:
-                x_axis_val = st.selectbox('Select X-Axis Value', options=df.columns, key='x_axis_selectbox')
+                x_axis_val = st.selectbox('Select :blue[X-Axis Value]', options=df.columns, key='x_axis_selectbox')
+            
             with y_axis_val_col_:
-                y_axis_val = st.selectbox('Select Y-Axis Value', options=df.columns, key='y_axis_selectbox')
+                y_axis_val = st.selectbox('Select :blue[Y-Axis Value]', options=df.columns, key='y_axis_selectbox')
             scatter_plot_1 = px.scatter(df, x=x_axis_val,y=y_axis_val)
 
             st.plotly_chart(scatter_plot_1,use_container_width=True)
-            # Erstellen des Histogramms mit Plotly
-            plt.tight_layout()
+    
             st.divider()
         
         elif chart_type == 'Linechart':
@@ -244,7 +276,7 @@ with st.expander('Data Visualization'):
             col3,col4 = st.columns(2)
             
             with col3:
-                x_axis_val_line = st.selectbox('Select X-Axis Value', options=df.columns,
+                x_axis_val_line = st.selectbox('Select :blue[X-Axis Value]', options=df.columns,
                                             key='x_axis_line_multiselect')
             with col4:
                 y_axis_vals_line = st.multiselect('Select :blue[Y-Axis Values]', options=df.columns,
@@ -277,8 +309,8 @@ with st.expander('Data Visualization'):
                 )
             )
 
-            fig_correlation.update_traces(  showscale = False, 
-                                            colorbar_thickness = 25)
+            fig_correlation.update_traces(showscale = False, 
+                                          colorbar_thickness = 25)
 
             # Hinzufügen der numerischen Werte als Text
             annotations = []
@@ -301,7 +333,6 @@ with st.expander('Data Visualization'):
 ####################################################################################################
 
 
-
 with st.expander('Recurrent Neural Network'):
     st.subheader("Create your own Reccurent Neural Network: ")
 
@@ -319,11 +350,6 @@ with st.expander('Recurrent Neural Network'):
         st.dataframe(df.dtypes, use_container_width=True)
         st.stop()
 
-    if y.dtype == 'object' or y.dtype == 'string' or y.dtype == 'datetime64[ns]':
-        st.warning('Ups, wrong data type for Target variable!')
-        #st_lottie('wrong_data_type_ML.json', width=700, height=300, quality='low', loop=False)
-        st.dataframe(df.dtypes, use_container_width=True)
-        st.stop()
 
     dataset = y.values
     dataset = dataset.astype('float32')  # Konvertieren der Daten in float32
@@ -352,9 +378,11 @@ with st.expander('Recurrent Neural Network'):
         dataset = scaler.fit_transform(dataset)
         
         scaled_dtype_col, scaled_shape_col = st.columns(2)
+
         with scaled_shape_col:
             shape_str = ' , '.join(map(str, dataset.shape))
             st.write("Shape:", shape_str)
+        
         with scaled_dtype_col:
             st.write("Dtype:", str(dataset.dtype))
         # Ausgabe der skalierten Daten
@@ -363,11 +391,9 @@ with st.expander('Recurrent Neural Network'):
                         use_container_width=True, hide_index=True)  # Anzeigen des skalierten Datensatzes in einem DataFrame
     st.info('The dataset has been successfully scaled!')
 
-    total_size = 100  # Total size of the dataset
-
-    # Initial split values
-    initial_train_size = 60
-    initial_test_size = 40
+    total_size = 100        # Total size of the dataset
+    initial_train_size = 60 # Initial train size
+    initial_test_size = 40  # Initial test size
 
     # Columns for sliders
     train_size_col, test_size_col = st.columns(2)
@@ -427,8 +453,10 @@ with st.expander('Recurrent Neural Network'):
     
 
     seq_size_col, seq_size_info_col= st.columns(2)
+
     with seq_size_col:
         seq_size = st.number_input("Insert a number for the sequence size", min_value=1, max_value=100, value=15, step=1)
+    
     with seq_size_info_col:
         st.info("Sequence size is the number of time steps to look back like a memory of the model.")
     
@@ -458,31 +486,49 @@ with st.expander('Recurrent Neural Network'):
     testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
 
     # Create the model
-    st.subheader("Create the model Infrastrucutre: ")
-    # Reshape input to be [samples, time steps, features]
-    st.write('Single LSTM with hidden Dense...')
-    model = Sequential()
-    model.add(LSTM(64, input_shape=(None, seq_size)))
-    model.add(Dense(32))
-    model.add(Dense(1))
-    model.compile(loss='mean_squared_error', optimizer='adam')
-    #monitor = EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=20, 
-    #                        verbose=1, mode='auto', restore_best_weights=True)
-    st.write(str(model.summary()))
-    st.write('Train...')
-    model_fit = model.fit(trainX, trainY, epochs=5, batch_size=1, verbose=2)
-    st.write(model_fit)
-    st.write('Predict...')
-    trainPredict = model.predict(trainX)
-    testPredict = model.predict(testX)
-    # invert predictions
-    trainPredict = scaler.inverse_transform(trainPredict)
-    trainY = scaler.inverse_transform([trainY])
-    testPredict = scaler.inverse_transform(testPredict)
-    testY = scaler.inverse_transform([testY])
-    # calculate root mean squared error
-    trainScore = np.sqrt(mean_squared_error(trainY[0], trainPredict[:,0]))
-    st.write('Train Score: %.2f RMSE' % (trainScore))
+    st.divider()
+    st.subheader("Create the model Infrastructure:")
+
+    button_create_infrastructure = st.button('Compile the model')
+    number_layers = st.number_input('Number of Layers', min_value=1, max_value=4, value=1, step=1)
+
+    layer_types = []
+    units = []
+
+    for i in range(number_layers):
+        st.write(f'Layer {i+1}')
+        col1, col2 = st.columns(2)
+        with col1:
+            layer_type = st.selectbox(f'Layer {i+1} Type', ('LSTM', 'Dense'), key=f'layer_type_{i}')
+            layer_types.append(layer_type)
+        with col2:
+            unit = st.number_input(f'Units in Layer {i+1}', min_value=1, max_value=512, value=64, step=1, key=f'units_{i}')
+            units.append(unit)
+
+    if button_create_infrastructure:
+        model = Sequential()
+        for i in range(number_layers):
+            if layer_types[i] == 'LSTM':
+                if i == 0:
+                    model.add(LSTM(units[i], input_shape=(None, seq_size), return_sequences=(i < number_layers - 1)))
+                else:
+                    model.add(LSTM(units[i], return_sequences=(i < number_layers - 1)))
+            elif layer_types[i] == 'Dense':
+                model.add(Dense(units[i]))
+
+        st.write("Model Summary:")
+        model.summary(print_fn=lambda x: st.text(x))
+
+    # model = Sequential()
+    # model.add(LSTM(64, input_shape=(None, seq_size)))
+    # model.add(Dense(32))
+    # model.add(Dense(1))
+    # model.compile(loss='mean_squared_error', optimizer='adam')
+
+    # model.summary()
+    
+    #model_fit = model.fit(trainX, trainY, epochs=5, batch_size=1, verbose=2)
+    
 
 
 
