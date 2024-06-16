@@ -11,6 +11,7 @@ from sklearn.metrics import mean_squared_error
 import plotly.express as px
 import plotly.graph_objs as go
 import plotly.io as pio
+import requests
 from sklearn.preprocessing import MinMaxScaler
 
 # function
@@ -471,7 +472,17 @@ with st.expander('Recurrent Neural Network'):
     st.write('Train...')
     model_fit = model.fit(trainX, trainY, epochs=5, batch_size=1, verbose=2)
     st.write(model_fit)
-
+    st.write('Predict...')
+    trainPredict = model.predict(trainX)
+    testPredict = model.predict(testX)
+    # invert predictions
+    trainPredict = scaler.inverse_transform(trainPredict)
+    trainY = scaler.inverse_transform([trainY])
+    testPredict = scaler.inverse_transform(testPredict)
+    testY = scaler.inverse_transform([testY])
+    # calculate root mean squared error
+    trainScore = np.sqrt(mean_squared_error(trainY[0], trainPredict[:,0]))
+    st.write('Train Score: %.2f RMSE' % (trainScore))
 
 
 
