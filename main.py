@@ -308,10 +308,13 @@ with st.expander('Recurrent Neural Network'):
     st.subheader("Create your own Reccurent Neural Network: ")
 
     forecast_Var = st.selectbox('Enter your Column for the RNN forecast:', 
-                                                    options=df.columns, key='RNN Variable')
+                                options=df.columns, key='RNN Variable')
+    
     y = df[forecast_Var]
+
     # Abfangen von Fehlern
     # Überprüfung des Datentyps der ausgewählten Variablen
+    
     if y.dtype == 'object' or y.dtype == 'string' or y.dtype == 'datetime64[ns]':
         st.warning('Ups, wrong data type for Target variable!')
         #st_lottie('wrong_data_type_ML.json', width=700, height=300, quality='low', loop=False)
@@ -335,7 +338,10 @@ with st.expander('Recurrent Neural Network'):
 
         dtype_col, shape_col = st.columns(2)
         with shape_col:
-            st.write("Shape:", str(dataset.shape))
+        # Convert shape to string without parentheses
+            shape_str = ' , '.join(map(str, dataset.shape))
+            st.write("Shape:", shape_str)
+
         with dtype_col:
             st.write("Dtype:", str(dataset.dtype))
         st.dataframe(pd.DataFrame(dataset, columns=[forecast_Var]), 
@@ -349,7 +355,8 @@ with st.expander('Recurrent Neural Network'):
         
         scaled_dtype_col, scaled_shape_col = st.columns(2)
         with scaled_shape_col:
-            st.write("Shape:", str(dataset.shape))
+            shape_str = ' , '.join(map(str, dataset.shape))
+            st.write("Shape:", shape_str)
         with scaled_dtype_col:
             st.write("Dtype:", str(dataset.dtype))
         # Ausgabe der skalierten Daten
@@ -431,13 +438,17 @@ with st.expander('Recurrent Neural Network'):
     trainX, trainY = to_sequences(train, seq_size)
     testX, testY = to_sequences(test, seq_size)
     train_x_col, train_y_col = st.columns(2)
+
     with train_x_col:
         st.dataframe(trainX, use_container_width=True)
+    
     with train_y_col:
         st.dataframe(trainY, use_container_width=True)
     test_x_col, test_y_col = st.columns(2)
+    
     with test_x_col:
         st.dataframe(testX, use_container_width=True)
+    
     with test_y_col:
         st.dataframe(testY, use_container_width=True)
 
@@ -449,8 +460,20 @@ with st.expander('Recurrent Neural Network'):
     testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
 
     # Create the model
+    st.subheader("Create the model Infrastrucutre: ")
+    # Reshape input to be [samples, time steps, features]
+    st.write('Single LSTM with hidden Dense...')
     model = Sequential()
-    
+    model.add(LSTM(64, input_shape=(None, seq_size)))
+    model.add(Dense(32))
+    model.add(Dense(1))
+    model.compile(loss='mean_squared_error', optimizer='adam')
+    #monitor = EarlyStopping(monitor='val_loss', min_delta=1e-3, patience=20, 
+    #                        verbose=1, mode='auto', restore_best_weights=True)
+    st.write(str(model.summary()))
+    st.write('Train...')
+    model_fit = model.fit(trainX, trainY, epochs=5, batch_size=1, verbose=2)
+    st.write(model_fit)
 
 
 
