@@ -544,23 +544,17 @@ with st.expander('Recurrent Neural Network'):
         st.write(model.compile(loss=loss, optimizer=optimizer))
         epochs = st.number_input('Number of Epochs', min_value=1, max_value=100, value=5, step=1)
         
-        
+        st.write(trainX.shape, trainY.shape, testX.shape, testY.shape)
+
         model.fit(trainX, trainY, validation_data=(testX, testY), 
                   verbose=2, epochs=epochs)
         
-        trainPredict = model.predict(trainX)
+        trainPredict = model.predict(trainX) 
         testPredict = model.predict(testX)
-        
         trainPredict = scaler.inverse_transform(trainPredict)
-        trainY = scaler.inverse_transform([trainY])
-        testPredict = scaler.inverse_transform(testPredict)
-        testY = scaler.inverse_transform([testY])
 
-        trainScore = math.sqrt(mean_squared_error(trainY[0], trainPredict[:,0]))
-        print('Train Score: %.2f RMSE' % (trainScore))
 
-        testScore = math.sqrt(mean_squared_error(testY[0], testPredict[:,0]))
-        print('Test Score: %.2f RMSE' % (testScore))
+        
         
         
 
