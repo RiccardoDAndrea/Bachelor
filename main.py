@@ -489,12 +489,16 @@ with st.expander('Recurrent Neural Network'):
     st.divider()
     st.subheader("Create the model Infrastructure:")
 
+    # Button to trigger model compilation
     button_create_infrastructure = st.button('Compile the model')
+
+    # Number of layers input
     number_layers = st.number_input('Number of Layers', min_value=1, max_value=4, value=1, step=1)
 
     layer_types = []
     units = []
 
+    # Collect layer details
     for i in range(number_layers):
         st.write(f'Layer {i+1}')
         col1, col2 = st.columns(2)
@@ -516,25 +520,29 @@ with st.expander('Recurrent Neural Network'):
             elif layer_types[i] == 'Dense':
                 model.add(Dense(units[i]))
 
-        st.write("Model Summary:")
+        st.write("### *Model Summary:*")
         model.summary(print_fn=lambda x: st.text(x))
+        optimizer_col, loss_col = st.columns(2)
+        with optimizer_col:
+            optimizer = st.selectbox('Optimizer', ('adam', 'sgd', 'rmsprop', 'adadelta', 'adagrad', 'adamax', 'nadam', 'ftrl'))
+        with loss_col:
+            loss = st.selectbox('Loss', ('mean_squared_error', 'mean_absolute_error', 'mean_absolute_percentage_error', 'mean_squared_logarithmic_error', 'cosine_similarity', 'huber', 'logcosh', 'poisson', 'kullback_leibler_divergence', 'kl_divergence'))
 
-    # model = Sequential()
-    # model.add(LSTM(64, input_shape=(None, seq_size)))
-    # model.add(Dense(32))
-    # model.add(Dense(1))
-    # model.compile(loss='mean_squared_error', optimizer='adam')
+        st.write(model.compile(loss=loss, optimizer=optimizer))
+        epochs = st.number_input('Number of Epochs', min_value=1, max_value=100, value=5, step=1)
+        #model_fit = model.fit(trainX, trainY, epochs=epochs, batch_size=1, verbose=2)
 
-    # model.summary()
+
+
     
-    #model_fit = model.fit(trainX, trainY, epochs=5, batch_size=1, verbose=2)
+    
     
 
 
 
 
 
-    ####################################################################################################
-    ############# R e c c u r e n t _ N e u r a l _ N e t w o r k ######################################
-    ###################################################################################################
+####################################################################################################
+############# R e c c u r e n t _ N e u r a l _ N e t w o r k ######################################
+###################################################################################################
 
