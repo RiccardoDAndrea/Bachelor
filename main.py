@@ -551,11 +551,33 @@ with st.expander('Recurrent Neural Network'):
         
         trainPredict = model.predict(trainX) 
         testPredict = model.predict(testX)
-        trainPredict = scaler.inverse_transform(trainPredict)
 
+        # Reshape predictions before inverse_transform
+        trainPredict_reshaped = trainPredict.reshape(trainPredict.shape[0], trainPredict.shape[2])
+        testPredict_reshaped = testPredict.reshape(testPredict.shape[0], testPredict.shape[2])
 
-        
-        
+        # Apply inverse_transform to predictions
+        trainPredict_original_scale = scaler.inverse_transform(trainPredict_reshaped)
+        testPredict_original_scale = scaler.inverse_transform(testPredict_reshaped)
+
+        # Reshape trainY and testY to be 2D arrays
+        trainY_2d = trainY.reshape(-1, 1)
+        testY_2d = testY.reshape(-1, 1)
+
+        # Apply inverse_transform to trainY and testY
+        trainY_original_scale = scaler.inverse_transform(trainY_2d)
+        testY_original_scale = scaler.inverse_transform(testY_2d)
+
+        # Calculate root mean squared error
+        trainScore = math.sqrt(mean_squared_error(trainY_original_scale, trainPredict_original_scale))
+        testScore = math.sqrt(mean_squared_error(testY_original_scale, testPredict_original_scale))
+        trainPredict[:,0].shape, trainPredict.shape
+        # calculate root mean squared error
+        trainScore = math.sqrt(mean_squared_error(trainY[0], trainPredict[:,0]))
+        st.write('Train Score: %.2f RMSE' % (trainScore))
+
+        testScore = math.sqrt(mean_squared_error(testY[0], testPredict[:,0]))
+        st.write('Test Score: %.2f RMSE' % (testScore))
         
 
 
