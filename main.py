@@ -12,6 +12,7 @@ import plotly.express as px
 import plotly.graph_objs as go
 import plotly.io as pio
 import requests
+import math
 from sklearn.preprocessing import MinMaxScaler
 
 # function
@@ -358,39 +359,43 @@ with st.expander('Recurrent Neural Network'):
     # Ausgabe der Form des Datensatzes
     Datset_col, Scaled_dataset_col = st.columns(2)
     with Datset_col:
-        st.subheader("Dataset Column:" , forecast_Var)
+        st.subheader("Dataset Overview: " , forecast_Var)
 
-        dtype_col, shape_col = st.columns(2)
+        shape_col,dtype_col = st.columns(2)
+
         with shape_col:
         # Convert shape to string without parentheses
             shape_str = ' , '.join(map(str, dataset.shape))
             st.write("Shape:", shape_str)
-
+        
         with dtype_col:
-            st.write("Dtype:", str(dataset.dtype))
+            st.write(" ") # für übersichtlichkeit leer gelassen
+
+        
+        
         st.dataframe(pd.DataFrame(dataset, columns=[forecast_Var]), 
                      use_container_width=True, hide_index=True)
     
     with Scaled_dataset_col:
     # Skalieren der Daten
-        st.subheader('Scaled Data')
+        st.subheader('Scaled Data Overview:')
         scaler = MinMaxScaler(feature_range=(0, 1))  # Auch QuantileTransformer kann ausprobiert werden
         dataset = scaler.fit_transform(dataset)
         
         scaled_dtype_col, scaled_shape_col = st.columns(2)
-
-        with scaled_shape_col:
+        
+        with scaled_dtype_col:
             shape_str = ' , '.join(map(str, dataset.shape))
             st.write("Shape:", shape_str)
         
-        with scaled_dtype_col:
-            st.write("Dtype:", str(dataset.dtype))
+        with scaled_shape_col:
+            st.write(" ") # für die Übersichtlichkeit leer gelassen
+            
         # Ausgabe der skalierten Daten
         
         st.dataframe(pd.DataFrame(dataset, columns=[forecast_Var]), 
                         use_container_width=True, hide_index=True)  # Anzeigen des skalierten Datensatzes in einem DataFrame
-    st.info('The dataset has been successfully scaled!')
-
+    
     total_size = 100        # Total size of the dataset
     initial_train_size = 60 # Initial train size
     initial_test_size = 40  # Initial test size
@@ -428,59 +433,69 @@ with st.expander('Recurrent Neural Network'):
     # Split the dataset
     train, test = dataset[:train_size_actual, :], dataset[train_size_actual:, :]
 
-    # Display the sizes and shapes
-    # len_dataset_col, train_shape_col, test_shape_col = st.columns(3)
-    # with len_dataset_col:
-    #     st.markdown(f"**Total dataset size: {len(dataset)}**")
-    # with train_shape_col:
-    #     st.write(f"**Training set size: {train.shape}**")
-    # with test_shape_col:
-    #     st.write(f"**Test set size: {test.shape}**")
-    
-    # Bin size slider for histogram
-
-    train_hist, test_hist = st.columns(2)
-    with train_hist:
-        train_bin_size = st.slider('Train Bin Size', min_value=1, max_value=100, step=1, value=10, format='%d', key='train_bin_size')
-        hist_plot_1 = px.histogram(train, x=train[:, 0], nbins=train_bin_size, labels={'x': 'Feature 1', 'y': 'Count'}, title='Training Set Histogram')
-        st.plotly_chart(hist_plot_1)
-
-    # Bin size slider and histogram for test set
-    with test_hist:
-        test_bin_size = st.slider('Test Bin Size', min_value=1, max_value=100, step=1, value=10, format='%d', key='test_bin_size')
-        hist_plot_2 = px.histogram(test, x=test[:, 0], nbins=test_bin_size, labels={'x': 'Feature 1', 'y': 'Count'}, title='Training Set Histogram')
-        st.plotly_chart(hist_plot_2)
+    # st.write("Shape of training set: {}".format(train.shape))
+    # st.write("Shape of test set: {}".format(test.shape))
     
 
-    seq_size_col, seq_size_info_col= st.columns(2)
+    # train_hist, test_hist = st.columns(2)
+    # with train_hist:
+    #     train_bin_size = st.slider('Train Bin Size', min_value=1, max_value=100, step=1, value=10, format='%d', key='train_bin_size')
+    #     hist_plot_1 = px.histogram(train, x=train[:, 0], nbins=train_bin_size, labels={'x': 'Feature 1', 'y': 'Count'}, title='Training Set Histogram')
+    #     st.plotly_chart(hist_plot_1)
 
+    # # Bin size slider and histogram for test set
+    # with test_hist:
+    #     test_bin_size = st.slider('Test Bin Size', min_value=1, max_value=100, step=1, value=10, format='%d', key='test_bin_size')
+    #     hist_plot_2 = px.histogram(test, x=test[:, 0], nbins=test_bin_size, labels={'x': 'Feature 1', 'y': 'Count'}, title='Training Set Histogram')
+    #     st.plotly_chart(hist_plot_2)
+    
+    st.divider()
+    seq_size_col, seq_size_info_col = st.columns(2)
+    
     with seq_size_col:
-        seq_size = st.number_input("Insert a number for the sequence size", min_value=1, max_value=100, value=15, step=1)
+        seq_size = st.number_input("Insert a number for the sequence size",
+                                   min_value=1, max_value=100, 
+                                   value=5, step=1)
     
     with seq_size_info_col:
+        st.write(" ")
         st.info("Sequence size is the number of time steps to look back like a memory of the model.")
     
-
+    # Assuming to_sequences is defined elsewhere and train/test are available
     trainX, trainY = to_sequences(train, seq_size)
     testX, testY = to_sequences(test, seq_size)
-    train_x_col, train_y_col = st.columns(2)
-
-    with train_x_col:
-        st.dataframe(trainX, use_container_width=True)
     
-    with train_y_col:
-        st.dataframe(trainY, use_container_width=True)
-    test_x_col, test_y_col = st.columns(2)
     
-    with test_x_col:
-        st.dataframe(testX, use_container_width=True)
     
-    with test_y_col:
-        st.dataframe(testY, use_container_width=True)
+    # Layout for training data
+    tab1, tab2 = st.tabs(["Training Data", "Test Data"])
 
+    
+    
+    with tab1:
+        st.write("### Forecast Training Data X and Y")
+        train_x_col, train_y_col = st.columns(2)
+        with train_x_col:
+            st.write("#### Forecast Training Data X")
+            st.dataframe(trainX, use_container_width=True)
+        
+        with train_y_col:
+            st.write("#### Forecast Training Data Y")
+            st.dataframe(trainY, use_container_width=True)
+    with tab2:
+        
+        st.write("### Forecast Test Data X and Y")
+        # Layout for test data
+        test_x_col, test_y_col = st.columns(2)
+        
+        with test_x_col:
+            st.write("#### Forecast Test Data X")
+            st.dataframe(testX, use_container_width=True)
+        
+        with test_y_col:
+            st.write("#### Forecast Test Data Y")
+            st.dataframe(testY, use_container_width=True)
 
-    st.write("Shape of training set: {}".format(trainX.shape))
-    st.write("Shape of test set: {}".format(testX.shape))
 
     trainX = np.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
     testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
@@ -488,7 +503,7 @@ with st.expander('Recurrent Neural Network'):
     # Create the model
     st.divider()
     st.subheader("Create the model Infrastructure:")
-
+    
     # Button to trigger model compilation
     button_create_infrastructure = st.button('Compile the model')
 
@@ -520,8 +535,6 @@ with st.expander('Recurrent Neural Network'):
             elif layer_types[i] == 'Dense':
                 model.add(Dense(units[i]))
 
-        st.write("### *Model Summary:*")
-        model.summary(print_fn=lambda x: st.text(x))
         optimizer_col, loss_col = st.columns(2)
         with optimizer_col:
             optimizer = st.selectbox('Optimizer', ('adam', 'sgd', 'rmsprop', 'adadelta', 'adagrad', 'adamax', 'nadam', 'ftrl'))
@@ -530,8 +543,26 @@ with st.expander('Recurrent Neural Network'):
 
         st.write(model.compile(loss=loss, optimizer=optimizer))
         epochs = st.number_input('Number of Epochs', min_value=1, max_value=100, value=5, step=1)
-        #model_fit = model.fit(trainX, trainY, epochs=epochs, batch_size=1, verbose=2)
+        
+        
+        model.fit(trainX, trainY, validation_data=(testX, testY), 
+                  verbose=2, epochs=epochs)
+        
+        trainPredict = model.predict(trainX)
+        testPredict = model.predict(testX)
+        
+        trainPredict = scaler.inverse_transform(trainPredict)
+        trainY = scaler.inverse_transform([trainY])
+        testPredict = scaler.inverse_transform(testPredict)
+        testY = scaler.inverse_transform([testY])
 
+        trainScore = math.sqrt(mean_squared_error(trainY[0], trainPredict[:,0]))
+        print('Train Score: %.2f RMSE' % (trainScore))
+
+        testScore = math.sqrt(mean_squared_error(testY[0], testPredict[:,0]))
+        print('Test Score: %.2f RMSE' % (testScore))
+        
+        
 
 
     
