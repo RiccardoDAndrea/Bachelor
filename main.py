@@ -474,6 +474,7 @@ with st.expander('Recurrent Neural Network'):
         with train_y_col:
             st.write("#### Forecast Training Data Y")
             st.dataframe(trainY, use_container_width=True)
+            st.write("Shape of training set: {}".format(trainY.shape))
 
     with test_data:
         st.write(f"### Forecast Test Data X and Y - :blue[{forecast_Var}]")
@@ -488,6 +489,7 @@ with st.expander('Recurrent Neural Network'):
         with test_y_col:
             st.write("#### Forecast Test Data Y")
             st.dataframe(testY, use_container_width=True)
+            st.write("Shape of test set: {}".format(testY.shape))
 
     
     
