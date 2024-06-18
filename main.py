@@ -549,7 +549,7 @@ with st.expander('Recurrent Neural Network'):
         st.write(trainX, trainY, testX, testY)
 
         model.fit(trainX, trainY, validation_data=(testX, testY), 
-              verbose=2, epochs=5)
+              verbose=2, epochs=epochs)
         
         trainPredict = model.predict(trainX)
         testPredict = model.predict(testX)
