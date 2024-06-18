@@ -553,7 +553,25 @@ with st.expander('Recurrent Neural Network'):
         
         trainPredict = model.predict(trainX)
         testPredict = model.predict(testX)
+        st.write(trainPredict.shape, testPredict.shape)
+
         trainPredict = scaler.inverse_transform(trainPredict)
+        trainY = scaler.inverse_transform([trainY])
+        testPredict = scaler.inverse_transform(testPredict)
+        testY = scaler.inverse_transform([testY])
+
+        st.write(trainPredict.shape, trainY.shape)
+        st.write(testPredict.shape, testY.shape)
+
+        trainScore = math.sqrt(mean_squared_error(trainY[0], trainPredict[:,0]))
+        st.write('Train Score: %.2f RMSE' % (trainScore))
+
+        testScore = math.sqrt(mean_squared_error(testY[0], testPredict[:,0]))
+        st.write('Test Score: %.2f RMSE' % (testScore))
+
+
+    
+        
 
 
         
@@ -572,4 +590,3 @@ with st.expander('Recurrent Neural Network'):
 ####################################################################################################
 ############# R e c c u r e n t _ N e u r a l _ N e t w o r k ######################################
 ###################################################################################################
-
