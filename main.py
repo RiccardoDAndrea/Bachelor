@@ -515,11 +515,12 @@ with st.expander('Recurrent Neural Network'):
     layer_types = []
     units = []
     return_sequences = []
+    activations = []
 
     # UI-Elemente zur Eingabe der Layer-Konfiguration
     for i in range(number_layers):
         st.write(f'Layer {i+1}')
-        col1, col2, col3  = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             layer_type = st.selectbox(f'Layer {i+1} Type', ('LSTM', 'GRU', 'Dense'), key=f'layer_type_{i}')
             layer_types.append(layer_type)
@@ -534,7 +535,12 @@ with st.expander('Recurrent Neural Network'):
                 return_sequences.append(return_seq)
             else:
                 return_sequences.append(None)  # None für Dense Layer
-
+        with col4:
+            if layer_type == 'Dense':
+                activation = st.selectbox(f'Activation Function for Dense Layer {i+1}', ('relu', 'sigmoid', 'tanh', 'softmax'), key=f'activation_{i}')
+                activations.append(activation)
+            else:
+                activations.append(None)
 
     # Eingabe für Epochen, Optimizer und Loss-Funktion
     epochs = st.number_input('Number of Epochs', min_value=1, max_value=100, value=5, step=1)
@@ -559,12 +565,13 @@ with st.expander('Recurrent Neural Network'):
                     model.add(GRU(units[i], return_sequences=return_sequences[i]))
             elif layer_types[i] == 'Dense':
                 if i == 0:
-                    model.add(Dense(units[i], input_shape=(None, seq_size)))
+                    model.add(Dense(units[i], input_shape=(seq_size,), activation=activations[i]))
                 else:
-                    model.add(Dense(units[i]))
+                    model.add(Dense(units[i], activation=activations[i]))
 
         model.compile(loss=loss, optimizer=optimizer)
         model.summary()
+
         
 
         
