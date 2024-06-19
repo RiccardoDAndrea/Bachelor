@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Dense
-from keras.layers import LSTM, Flatten
+from keras.layers import LSTM, GRU, Dense
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 import plotly.express as px
@@ -504,72 +504,113 @@ with st.expander('Recurrent Neural Network'):
     st.subheader("Create the model Infrastructure:")
     
     # Button to trigger model compilation
-    button_create_infrastructure = st.button('Compile the model')
+    
 
     # Number of layers input
     number_layers = st.number_input('Number of Layers', min_value=1, max_value=4, value=1, step=1)
+    #return_sequc = st.checkbox('Return Sequences', value=False) 
+    
 
+    st.divider()
     layer_types = []
     units = []
+    return_sequences = []
 
-    # Collect layer details
+    # UI-Elemente zur Eingabe der Layer-Konfiguration
     for i in range(number_layers):
         st.write(f'Layer {i+1}')
-        col1, col2 = st.columns(2)
+        col1, col2, col3  = st.columns(3)
         with col1:
-            layer_type = st.selectbox(f'Layer {i+1} Type', ('LSTM', 'Dense'), key=f'layer_type_{i}')
+            layer_type = st.selectbox(f'Layer {i+1} Type', ('LSTM', 'GRU', 'Dense'), key=f'layer_type_{i}')
             layer_types.append(layer_type)
         with col2:
             unit = st.number_input(f'Units in Layer {i+1}', min_value=1, max_value=512, value=64, step=1, key=f'units_{i}')
             units.append(unit)
+        with col3:
+            if layer_type in ['LSTM', 'GRU']:
+                st.write(" ")
+                st.write(" ")
+                return_seq = st.checkbox(f'Return Sequences in Layer {i+1}', key=f'return_seq_{i}')
+                return_sequences.append(return_seq)
+            else:
+                return_sequences.append(None)  # None für Dense Layer
 
-    if button_create_infrastructure:
+
+    # Eingabe für Epochen, Optimizer und Loss-Funktion
+    epochs = st.number_input('Number of Epochs', min_value=1, max_value=100, value=5, step=1)
+    optimizer_col, loss_col = st.columns(2)
+    with optimizer_col:
+        optimizer = st.selectbox('Optimizer', ('adam', 'sgd', 'rmsprop', 'adadelta', 'adagrad', 'adamax', 'nadam', 'ftrl'))
+    with loss_col:
+        loss = st.selectbox('Loss', ('mean_squared_error', 'mean_absolute_error', 'mean_absolute_percentage_error', 'mean_squared_logarithmic_error', 'cosine_similarity', 'huber', 'logcosh', 'poisson', 'kullback_leibler_divergence', 'kl_divergence'))
+
+    if st.button('Compile and train the model'):
         model = Sequential()
         for i in range(number_layers):
             if layer_types[i] == 'LSTM':
                 if i == 0:
-                    model.add(LSTM(units[i], input_shape=(None, seq_size)))
+                    model.add(LSTM(units[i], input_shape=(None, seq_size), return_sequences=return_sequences[i]))
                 else:
-                    model.add(LSTM(units[i], return_sequences=(i < number_layers - 1)))
+                    model.add(LSTM(units[i], return_sequences=return_sequences[i]))
+            elif layer_types[i] == 'GRU':
+                if i == 0:
+                    model.add(GRU(units[i], input_shape=(None, seq_size), return_sequences=return_sequences[i]))
+                else:
+                    model.add(GRU(units[i], return_sequences=return_sequences[i]))
             elif layer_types[i] == 'Dense':
-                model.add(Dense(units[i]))
+                if i == 0:
+                    model.add(Dense(units[i], input_shape=(None, seq_size)))
+                else:
+                    model.add(Dense(units[i]))
 
-        optimizer_col, loss_col = st.columns(2)
-        with optimizer_col:
-            optimizer = st.selectbox('Optimizer', ('adam', 'sgd', 'rmsprop', 'adadelta', 'adagrad', 'adamax', 'nadam', 'ftrl'))
-        with loss_col:
-            loss = st.selectbox('Loss', ('mean_squared_error', 'mean_absolute_error', 'mean_absolute_percentage_error', 'mean_squared_logarithmic_error', 'cosine_similarity', 'huber', 'logcosh', 'poisson', 'kullback_leibler_divergence', 'kl_divergence'))
-
-        st.write(model.compile(loss=loss, optimizer=optimizer))
-        st.write(model.summary())
-
-        epochs = st.number_input('Number of Epochs', min_value=1, max_value=100, value=5, step=1)
+        model.compile(loss=loss, optimizer=optimizer)
+        model.summary()
         
-        st.write(trainX.shape, trainY.shape, testX.shape, testY.shape)
-        st.write(trainX, trainY, testX, testY)
+
+        
+        # st.write(trainX.shape, trainY.shape, testX.shape, testY.shape)
+        # st.write(trainX, trainY, testX, testY)
 
         model.fit(trainX, trainY, validation_data=(testX, testY), 
               verbose=2, epochs=epochs)
         
         trainPredict = model.predict(trainX)
         testPredict = model.predict(testX)
-        st.write(trainPredict.shape, testPredict.shape)
+        # Überprüfen der Form der Ausgabe
+        
+        # st.write(trainPredict.shape, testPredict.shape)
 
         trainPredict = scaler.inverse_transform(trainPredict)
         trainY = scaler.inverse_transform([trainY])
         testPredict = scaler.inverse_transform(testPredict)
         testY = scaler.inverse_transform([testY])
 
-        st.write(trainPredict.shape, trainY.shape)
-        st.write(testPredict.shape, testY.shape)
+        # st.write(trainPredict.shape, trainY.shape)
+        # st.write(testPredict.shape, testY.shape)
+        st.write("### Model Evaluation:")
 
-        trainScore = math.sqrt(mean_squared_error(trainY[0], trainPredict[:,0]))
-        st.write('Train Score: %.2f RMSE' % (trainScore))
+        RMSE_train_com, RMSE_test_com = st.columns(2)
+        with RMSE_train_com:
+            trainScore = math.sqrt(mean_squared_error(trainY[0], trainPredict[:,0]))
+            st.metric('Train Score: RMSE',round(trainScore,2))
 
-        testScore = math.sqrt(mean_squared_error(testY[0], testPredict[:,0]))
-        st.write('Test Score: %.2f RMSE' % (testScore))
+        with RMSE_test_com:
+            testScore = math.sqrt(mean_squared_error(testY[0], testPredict[:,0]))
+            st.metric('Test Score: RMSE', round(testScore,2))
 
+        # shift train predictions for plotting
+        #we must shift the predictions so that they align on the x-axis with the original dataset. 
+        trainPredictPlot = np.empty_like(dataset)
+        trainPredictPlot[:, :] = np.nan
+        trainPredictPlot[seq_size:len(trainPredict)+seq_size, :] = trainPredict
 
+        # shift test predictions for plotting
+        testPredictPlot = np.empty_like(dataset)
+        testPredictPlot[:, :] = np.nan
+        testPredictPlot[len(trainPredict)+(seq_size*2)+1:len(dataset)-1, :] = testPredict
+
+        # plot baseline and predictions
+        
     
         
 
