@@ -3,9 +3,9 @@ from streamlit_lottie import st_lottie
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+from keras.optimizers import Adam, SGD, RMSprop, Adadelta, Adagrad, Adamax, Nadam, Ftrl
 from keras.models import Sequential
-from keras.layers import Dense
-from keras.layers import LSTM, GRU, Dense
+from keras.layers import LSTM, GRU, Dense, Flatten
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 import plotly.express as px
@@ -522,7 +522,7 @@ with st.expander('Recurrent Neural Network'):
         st.write(f'Layer {i+1}')
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            layer_type = st.selectbox(f'Layer {i+1} Type', ('LSTM', 'GRU', 'Dense'), key=f'layer_type_{i}')
+            layer_type = st.selectbox(f'Layer {i+1} Type', ('Dense', 'LSTM', 'GRU', 'Flatten'), key=f'layer_type_{i}')
             layer_types.append(layer_type)
         with col2:
             unit = st.number_input(f'Units in Layer {i+1}', min_value=1, max_value=512, value=64, step=1, key=f'units_{i}')
@@ -537,13 +537,18 @@ with st.expander('Recurrent Neural Network'):
                 return_sequences.append(None)  # None für Dense Layer
         with col4:
             if layer_type == 'Dense':
-                activation = st.selectbox(f'Activation Function for Dense Layer {i+1}', ('relu', 'sigmoid', 'tanh', 'softmax'), key=f'activation_{i}')
-                activations.append(activation)
+                activation = st.selectbox(f'Activation Function for Dense Layer {i+1}', ('None', 'relu', 'sigmoid', 'tanh', 'softmax'), key=f'activation_{i}')
+                activations.append(None if activation == 'None' else activation)
             else:
                 activations.append(None)
 
     # Eingabe für Epochen, Optimizer und Loss-Funktion
-    epochs = st.number_input('Number of Epochs', min_value=1, max_value=100, value=5, step=1)
+    epochs_col, lr_col = st.columns(2)
+    with epochs_col:
+        epochs = st.number_input('Number of Epochs', min_value=1, max_value=100, value=5, step=1)
+    with lr_col:
+        learning_rate = st.number_input('Learning Rate', min_value=0.0000, max_value=0.1, value=0.001, step=0.0001)
+
     optimizer_col, loss_col = st.columns(2)
     with optimizer_col:
         optimizer = st.selectbox('Optimizer', ('adam', 'sgd', 'rmsprop', 'adadelta', 'adagrad', 'adamax', 'nadam', 'ftrl'))
@@ -568,18 +573,37 @@ with st.expander('Recurrent Neural Network'):
                     model.add(Dense(units[i], input_shape=(seq_size,), activation=activations[i]))
                 else:
                     model.add(Dense(units[i], activation=activations[i]))
+            elif layer_types[i] == 'Flatten':
+                model.add(Flatten())
 
-        model.compile(loss=loss, optimizer=optimizer)
-        model.summary()
+        if optimizer == 'adam':
+            opt = Adam(learning_rate=learning_rate)
+        elif optimizer == 'sgd':
+            opt = SGD(learning_rate=learning_rate)
+        elif optimizer == 'rmsprop':
+            opt = RMSprop(learning_rate=learning_rate)
+        elif optimizer == 'adadelta':
+            opt = Adadelta(learning_rate=learning_rate)
+        elif optimizer == 'adagrad':
+            opt = Adagrad(learning_rate=learning_rate)
+        elif optimizer == 'adamax':
+            opt = Adamax(learning_rate=learning_rate)
+        elif optimizer == 'nadam':
+            opt = Nadam(learning_rate=learning_rate)
+        elif optimizer == 'ftrl':
+            opt = Ftrl(learning_rate=learning_rate)
+        else:
+            raise ValueError(f'Optimizer "{optimizer}" not recognized.')
 
-        
+        model.compile(loss=loss, optimizer=opt)
+        model_summary = []
+        model.summary(print_fn=lambda x: model_summary.append(x))
+        for line in model_summary:
+            st.write(line)
 
-        
-        # st.write(trainX.shape, trainY.shape, testX.shape, testY.shape)
-        # st.write(trainX, trainY, testX, testY)
-
+        # Trainingscode hier einfügen
         model.fit(trainX, trainY, validation_data=(testX, testY), 
-              verbose=2, epochs=epochs)
+                verbose=2, epochs=epochs)
         
         trainPredict = model.predict(trainX)
         testPredict = model.predict(testX)
