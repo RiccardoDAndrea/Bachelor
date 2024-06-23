@@ -610,11 +610,16 @@ with st.expander('Recurrent Neural Network'):
         # Überprüfen der Form der Ausgabe
         
         # st.write(trainPredict.shape, testPredict.shape)
+        try:
+            
+            trainPredict = scaler.inverse_transform(trainPredict)
+            trainY = scaler.inverse_transform([trainY])
+            testPredict = scaler.inverse_transform(testPredict)
+            testY = scaler.inverse_transform([testY])
+        except ValueError as e:
+            st.error(f"An error occurred during inverse transformation: {e}")
+            st.stop()
 
-        trainPredict = scaler.inverse_transform(trainPredict)
-        trainY = scaler.inverse_transform([trainY])
-        testPredict = scaler.inverse_transform(testPredict)
-        testY = scaler.inverse_transform([testY])
 
         # st.write(trainPredict.shape, trainY.shape)
         # st.write(testPredict.shape, testY.shape)
