@@ -161,7 +161,7 @@ with st.expander('Data Cleaning'):
             df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_median)
             st.write('##### You have succesfully change the NaN values :blue[with the Median]')
             st.dataframe(df.isna().sum(), use_container_width=True)
-            
+
         elif 'interpolate' in missing_values:
             df = df.interpolate()
             st.write('##### You have succesfully :blue[interpolated the NaN values]')
@@ -664,7 +664,7 @@ with st.expander('Recurrent Neural Network'):
             st.metric('Test Score: RMSE', round(testScore,2))
 
         # shift train predictions for plotting
-        #we must shift the predictions so that they align on the x-axis with the original dataset. 
+        # we must shift the predictions so that they align on the x-axis with the original dataset. 
         trainPredictPlot = np.empty_like(dataset)
         trainPredictPlot[:, :] = np.nan
         trainPredictPlot[seq_size:len(trainPredict)+seq_size, :] = trainPredict
@@ -674,7 +674,8 @@ with st.expander('Recurrent Neural Network'):
         testPredictPlot[:, :] = np.nan
         testPredictPlot[len(trainPredict)+(seq_size*2)+1:len(dataset)-1, :] = testPredict
 
-        # plot baseline and predictions
+        
+        
         
     
         
