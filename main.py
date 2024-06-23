@@ -101,228 +101,241 @@ else:
 df = pd.read_csv(file_uploader, sep=selected_separator, 
                 thousands=selected_thousands, decimal=selected_decimal)
 
-# # Spalte 'Date' in datetime-Objekte konvertieren
-# # Sicherstellen, dass die 'Date'-Spalte im DateTime-Format ist
-# df['Date'] = pd.to_datetime(df['Date'])
+# Spalte 'Date' in datetime-Objekte konvertieren
+# Sicherstellen, dass die 'Date'-Spalte im DateTime-Format ist
+df['Date'] = pd.to_datetime(df['Date'])
 
-# # # Extrahieren Sie das Datum ohne die Zeitkomponente
-# df['Date'] = df['Date'].dt.date
+# # Extrahieren Sie das Datum ohne die Zeitkomponente
+df['Date'] = df['Date'].dt.date
 
 
 
 
     
 
-# ### General Information about the data
-# # Display the DataFrame
-# st.subheader("Your DataFrame: ")
-# st.dataframe(df, use_container_width=True)
-# st.divider()
+### General Information about the data
+# Display the DataFrame
+st.subheader("Your DataFrame: ")
+st.dataframe(df, use_container_width=True)
+st.divider()
 
-# ##########################################################################################
-# #############  D a t a _ d e s c r i b e #################################################
-# ##########################################################################################
+##########################################################################################
+#############  D a t a _ d e s c r i b e #################################################
+##########################################################################################
 
-# with st.expander('Data Description'):
-#     st.subheader("Data Description: ")  
-#     st.dataframe(df.describe())
+with st.expander('Data Description'):
+    st.subheader("Data Description: ")  
+    st.dataframe(df.describe())
 
-# ##########################################################################################
-# #############  D a t a _ d e s c r i b e #################################################
-# ##########################################################################################
+##########################################################################################
+#############  D a t a _ d e s c r i b e #################################################
+##########################################################################################
 
 
 
-# ##################################################################################################
-# #############  D a t a _ C l e a n i n g _ e n d #################################################
-# ##################################################################################################
+##################################################################################################
+#############  D a t a _ C l e a n i n g _ e n d #################################################
+##################################################################################################
 
-# with st.expander('Data Cleaning'):
-#     st.subheader('How to proceed with NaN values')
-#     st.dataframe(df.isna().sum(), use_container_width=True) # get the sum of NaN values in the DataFrame
-#     checkbox_nan_values = st.checkbox("Do you want to replace the NaN values to proceed?", key="disabled")
+with st.expander('Data Cleaning'):
+    st.subheader('How to proceed with NaN values')
+    st.dataframe(df.isna().sum(), use_container_width=True) # get the sum of NaN values in the DataFrame
+    checkbox_nan_values = st.checkbox("Do you want to replace the NaN values to proceed?", key="disabled")
 
-#     if checkbox_nan_values:
-#         numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
-#         missing_values = st.selectbox(
-#             "How do you want to replace the NaN values in the numeric columns?",
-#             key="visibility",
-#             options=["None",
-#                     "with Median", 
-#                     "with Mean", 
-#                     "with Minimum value", 
-#                     "with Maximum value", 
-#                     "with Zero"])
+    if checkbox_nan_values:
+        numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
+        missing_values = st.selectbox(
+            "How do you want to replace the NaN values in the numeric columns?",
+            key="visibility",
+            options=["None",
+                     "Drop rows with NaN values",
+                     "interpolate",
+                     "with Median", 
+                     "with Mean", 
+                     "with Minimum value", 
+                     "with Maximum value", 
+                     "with Zero"])
 
-#         if 'with Median' in missing_values:
-#             uploaded_file_median = df[numeric_columns].median()
-#             df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_median)
-#             st.write('##### You have succesfully change the NaN values :blue[with the Median]')
-#             st.dataframe(df.isna().sum(), use_container_width=True)
+        if 'with Median' in missing_values:
+            uploaded_file_median = df[numeric_columns].median()
+            df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_median)
+            st.write('##### You have succesfully change the NaN values :blue[with the Median]')
+            st.dataframe(df.isna().sum(), use_container_width=True)
             
-#         elif 'with Mean' in missing_values:
-#             uploaded_file_mean = df[numeric_columns].mean()
-#             df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_mean)
-#             st.markdown(' ##### You have succesfully change the NaN values :blue[ with the Mean]')
-#             st.dataframe(df.isna().sum(), use_container_width=True)
+        elif 'interpolate' in missing_values:
+            df = df.interpolate()
+            st.write('##### You have succesfully :blue[interpolated the NaN values]')
+            st.dataframe(df.isna().sum(), use_container_width=True)
 
-#         elif 'with Minimum value' in missing_values:
-#             uploaded_file_min = df[numeric_columns].min()
-#             df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_min)
-#             st.write('##### You have succesfully change the NaN values :blue[with the minimum values]')
-#             st.dataframe(df.isna().sum(), use_container_width=True)
+        elif 'Drop rows with NaN values' in missing_values:
+            df = df.dropna()
+            st.write('##### You have succesfully :blue[drop rows with NaN values]')
+            st.dataframe(df.isna().sum(), use_container_width=True)
             
-#         elif 'with Maximum value' in missing_values:
-#             uploaded_file_max = df[numeric_columns].max()
-#             df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_max)
-#             st.write('##### You have succesfully change the NaN values :blue[with the maximums values]')
-#             st.dataframe(df.isna().sum(), use_container_width=True)
-            
-#         elif 'with Zero' in missing_values:
-#             numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
-#             df[numeric_columns] = df[numeric_columns].fillna(0)
-#             st.write('##### You have successfully changed :blue[the NaN values to 0.]')
-#             st.dataframe(df.isna().sum(), use_container_width=True)
-#     st.divider()
-#     st.subheader("Remove Columns:")
-#     selected_columns = st.multiselect("Choose your columns", df.columns)
-#     df = df.drop(selected_columns, axis=1)
-#     st.dataframe(df)
-#     st.divider()
+        elif 'with Mean' in missing_values:
+            uploaded_file_mean = df[numeric_columns].mean()
+            df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_mean)
+            st.markdown(' ##### You have succesfully change the NaN values :blue[ with the Mean]')
+            st.dataframe(df.isna().sum(), use_container_width=True)
 
-#     st.subheader('Your DataFrame data types: ')
-#     st.dataframe(df.dtypes, use_container_width=True)
-#     st.subheader("Change your Data Types:")
+        elif 'with Minimum value' in missing_values:
+            uploaded_file_min = df[numeric_columns].min()
+            df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_min)
+            st.write('##### You have succesfully change the NaN values :blue[with the minimum values]')
+            st.dataframe(df.isna().sum(), use_container_width=True)
+            
+        elif 'with Maximum value' in missing_values:
+            uploaded_file_max = df[numeric_columns].max()
+            df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_max)
+            st.write('##### You have succesfully change the NaN values :blue[with the maximums values]')
+            st.dataframe(df.isna().sum(), use_container_width=True)
+            
+        elif 'with Zero' in missing_values:
+            numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
+            df[numeric_columns] = df[numeric_columns].fillna(0)
+            st.write('##### You have successfully changed :blue[the NaN values to 0.]')
+            st.dataframe(df.isna().sum(), use_container_width=True)
+
+    st.divider()
+    st.subheader("Remove Columns:")
+    selected_columns = st.multiselect("Choose your columns", df.columns)
+    df = df.drop(selected_columns, axis=1)
+    st.dataframe(df)
+    st.divider()
+
+    st.subheader('Your DataFrame data types: ')
+    st.dataframe(df.dtypes, use_container_width=True)
+    st.subheader("Change your Data Types:")
     
-#     change_data_type_col_1, change_data_type_col_2 = st.columns(2)
+    change_data_type_col_1, change_data_type_col_2 = st.columns(2)
 
-#     # Column 1: Select columns and data type
-#     with change_data_type_col_1:
-#         selected_columns_1 = st.multiselect("Choose your columns", df.columns, key='change_data_type_1')
-#         selected_dtype_1 = st.selectbox("Choose a data type", ["None","int64", "float64", "string", "datetime64[ns]"], key='selectbox_1')
+    # Column 1: Select columns and data type
+    with change_data_type_col_1:
+        selected_columns_1 = st.multiselect("Choose your columns", df.columns, key='change_data_type_1')
+        selected_dtype_1 = st.selectbox("Choose a data type", ["None","int64", "float64", "string", "datetime64[ns]"], key='selectbox_1')
 
-#     # Column 2: Select columns and data type
-#     with change_data_type_col_2:
-#         selected_columns_2 = st.multiselect("Choose your columns", df.columns, key='change_data_type_2')
-#         selected_dtype_2 = st.selectbox("Choose a data type", ["None", "int64", "float64", "string", "datetime64[ns]"], key='selectbox_2')
+    # Column 2: Select columns and data type
+    with change_data_type_col_2:
+        selected_columns_2 = st.multiselect("Choose your columns", df.columns, key='change_data_type_2')
+        selected_dtype_2 = st.selectbox("Choose a data type", ["None", "int64", "float64", "string", "datetime64[ns]"], key='selectbox_2')
 
-#     # Function to change data types
-#     def change_data_types(dataframe, columns, dtype):
-#         if columns:
-#             try:
-#                 if dtype == "int64":
-#                     dataframe[columns] = dataframe[columns].apply(pd.to_numeric, errors='coerce').astype('Int64')
-#                 elif dtype == "float64":
-#                     dataframe[columns] = dataframe[columns].apply(pd.to_numeric, errors='coerce').astype('float64')
-#                 elif dtype == "string":
-#                     dataframe[columns] = dataframe[columns].astype('string')
-#                 elif dtype == "datetime64[ns]":
-#                     dataframe[columns] = dataframe[columns].apply(pd.to_datetime, errors='coerce')
-#             except Exception as e:
-#                 st.error(f"Error converting columns {columns} to {dtype}: {e}")
+    # Function to change data types
+    def change_data_types(dataframe, columns, dtype):
+        if columns:
+            try:
+                if dtype == "int64":
+                    dataframe[columns] = dataframe[columns].apply(pd.to_numeric, errors='coerce').astype('Int64')
+                elif dtype == "float64":
+                    dataframe[columns] = dataframe[columns].apply(pd.to_numeric, errors='coerce').astype('float64')
+                elif dtype == "string":
+                    dataframe[columns] = dataframe[columns].astype('string')
+                elif dtype == "datetime64[ns]":
+                    dataframe[columns] = dataframe[columns].apply(pd.to_datetime, errors='coerce')
+            except Exception as e:
+                st.error(f"Error converting columns {columns} to {dtype}: {e}")
 
-#     # Apply data type changes
-#     change_data_types(df, selected_columns_1, selected_dtype_1)
-#     change_data_types(df, selected_columns_2, selected_dtype_2)
+    # Apply data type changes
+    change_data_types(df, selected_columns_1, selected_dtype_1)
+    change_data_types(df, selected_columns_2, selected_dtype_2)
 
-#     st.divider()
+    st.divider()
 
-#     # Display the modified DataFrame
-#     st.subheader('Modified DataFrame data types:')
-#     st.dataframe(df.dtypes, use_container_width=True)
+    # Display the modified DataFrame
+    st.subheader('Modified DataFrame data types:')
+    st.dataframe(df.dtypes, use_container_width=True)
 
-#     # Display the DataFrame
-#     st.subheader('Modified DataFrame:')
-#     st.dataframe(df)
+    # Display the DataFrame
+    st.subheader('Modified DataFrame:')
+    st.dataframe(df)
 
-# ##################################################################################################
-# #############  D a t a _ C l e a n i n g #################################################
-# ##################################################################################################
-
-
-
-# ####################################################################################################
-# #############  D a t a _ V i s u a l i z a t i o n #################################################
-# ####################################################################################################
+##################################################################################################
+#############  D a t a _ C l e a n i n g #################################################
+##################################################################################################
 
 
-# with st.expander('Data Visualization'):
-#     st.subheader('Data Visualization')
 
-#     options_of_charts = st.multiselect('What Graphs do you want?', 
-#                                        ('Linechart', 
-#                                         'Scatterchart',
-#                                         'Correlation Matrix'))
-#     for chart_type in options_of_charts:
+####################################################################################################
+#############  D a t a _ V i s u a l i z a t i o n #################################################
+####################################################################################################
 
-#         if chart_type == 'Scatterchart':
 
-#             st.write('You can freely choose your :blue[Scatter plot]')
-#             x_axis_val_col_, y_axis_val_col_ = st.columns(2)
+with st.expander('Data Visualization'):
+    st.subheader('Data Visualization')
+
+    options_of_charts = st.multiselect('What Graphs do you want?', 
+                                       ('Linechart', 
+                                        'Scatterchart',
+                                        'Correlation Matrix'))
+    for chart_type in options_of_charts:
+
+        if chart_type == 'Scatterchart':
+
+            st.write('You can freely choose your :blue[Scatter plot]')
+            x_axis_val_col_, y_axis_val_col_ = st.columns(2)
             
-#             with x_axis_val_col_:
-#                 x_axis_val = st.selectbox('Select :blue[X-Axis Value]', options=df.columns, key='x_axis_selectbox')
+            with x_axis_val_col_:
+                x_axis_val = st.selectbox('Select :blue[X-Axis Value]', options=df.columns, key='x_axis_selectbox')
             
-#             with y_axis_val_col_:
-#                 y_axis_val = st.selectbox('Select :blue[Y-Axis Value]', options=df.columns, key='y_axis_selectbox')
-#             scatter_plot_1 = px.scatter(df, x=x_axis_val,y=y_axis_val)
+            with y_axis_val_col_:
+                y_axis_val = st.selectbox('Select :blue[Y-Axis Value]', options=df.columns, key='y_axis_selectbox')
+            scatter_plot_1 = px.scatter(df, x=x_axis_val,y=y_axis_val)
 
-#             st.plotly_chart(scatter_plot_1,use_container_width=True)
+            st.plotly_chart(scatter_plot_1,use_container_width=True)
     
-#             st.divider()
+            st.divider()
         
-#         elif chart_type == 'Linechart':
-#             st.markdown('You can freely choose your :blue[Linechart] :chart_with_upwards_trend:')
+        elif chart_type == 'Linechart':
+            st.markdown('You can freely choose your :blue[Linechart] :chart_with_upwards_trend:')
 
-#             col3,col4 = st.columns(2)
+            col3,col4 = st.columns(2)
             
-#             with col3:
-#                 x_axis_val_line = st.selectbox('Select :blue[X-Axis Value]', options=df.columns,
-#                                             key='x_axis_line_multiselect')
-#             with col4:
-#                 y_axis_vals_line = st.multiselect('Select :blue[Y-Axis Values]', options=df.columns,
-#                                                 key='y_axis_line_multiselect')
+            with col3:
+                x_axis_val_line = st.selectbox('Select :blue[X-Axis Value]', options=df.columns,
+                                            key='x_axis_line_multiselect')
+            with col4:
+                y_axis_vals_line = st.multiselect('Select :blue[Y-Axis Values]', options=df.columns,
+                                                key='y_axis_line_multiselect')
 
-#             line_plot_1 = px.line(df, x=x_axis_val_line, y=y_axis_vals_line)
-#             st.plotly_chart(line_plot_1)
+            line_plot_1 = px.line(df, x=x_axis_val_line, y=y_axis_vals_line)
+            st.plotly_chart(line_plot_1)
         
-#         elif chart_type == 'Correlation Matrix':
-#             corr_matrix = df.select_dtypes(include=['float64', 
-#                                                     'int64']).corr()
+        elif chart_type == 'Correlation Matrix':
+            corr_matrix = df.select_dtypes(include=['float64', 
+                                                    'int64']).corr()
 
 
-#             # Erstellung der Heatmap mit Plotly
-#             fig_correlation = px.imshow(corr_matrix.values, 
-#                                         color_continuous_scale = 'purples', 
-#                                         zmin = -1, 
-#                                         zmax = 1,
-#                                         x = corr_matrix.columns, 
-#                                         y = corr_matrix.index,
-#                                         labels = dict( x = "Columns", 
-#                                                     y = "Columns", 
-#                                                     color = "Correlation"))
+            # Erstellung der Heatmap mit Plotly
+            fig_correlation = px.imshow(corr_matrix.values, 
+                                        color_continuous_scale = 'purples', 
+                                        zmin = -1, 
+                                        zmax = 1,
+                                        x = corr_matrix.columns, 
+                                        y = corr_matrix.index,
+                                        labels = dict( x = "Columns", 
+                                                    y = "Columns", 
+                                                    color = "Correlation"))
 
-#             # Anpassung der Plot-Parameter
-#             fig_correlation.update_layout(
-#                                         title='Correlation Matrix',
-#                                         font=dict(
-#                                         color='grey'
-#                 )
-#             )
+            # Anpassung der Plot-Parameter
+            fig_correlation.update_layout(
+                                        title='Correlation Matrix',
+                                        font=dict(
+                                        color='grey'
+                )
+            )
 
-#             fig_correlation.update_traces(showscale = False, 
-#                                           colorbar_thickness = 25)
+            fig_correlation.update_traces(showscale = False, 
+                                          colorbar_thickness = 25)
 
-#             # Hinzufügen der numerischen Werte als Text
-#             annotations = []
-#             for i, row in enumerate(corr_matrix.values):
-#                 for j, val in enumerate(row):
-#                     annotations.append(dict(x=j, y=i, text=str(round(val, 2)), showarrow=False, font=dict(size=16)))
-#             fig_correlation.update_layout(annotations=annotations)
+            # Hinzufügen der numerischen Werte als Text
+            annotations = []
+            for i, row in enumerate(corr_matrix.values):
+                for j, val in enumerate(row):
+                    annotations.append(dict(x=j, y=i, text=str(round(val, 2)), showarrow=False, font=dict(size=16)))
+            fig_correlation.update_layout(annotations=annotations)
 
-#             # Anzeigen der Plot
-#             st.plotly_chart(fig_correlation, use_container_width= True)
-#             fig_correlationplot = go.Figure(data=fig_correlation)
+            # Anzeigen der Plot
+            st.plotly_chart(fig_correlation, use_container_width= True)
+            fig_correlationplot = go.Figure(data=fig_correlation)
 
 # ####################################################################################################
 # #############  D a t a _ V i s u a l i z a t i o n #################################################
@@ -337,15 +350,31 @@ df = pd.read_csv(file_uploader, sep=selected_separator,
 with st.expander('Recurrent Neural Network'):
     st.subheader("Create your own Reccurent Neural Network: ")
 
-    forecast_Var = st.selectbox('Enter your Column for the RNN forecast:', 
-                                options=df.columns, key='RNN Variable')
-   
-    y = df[[forecast_Var]]
-    y = y.dropna()
-    
-    dataset = y.values
-    dataset = dataset.astype('float32')
-    dataset_rounded = np.round(dataset, 2)
+    try:
+        forecast_Var = st.selectbox('Enter your Column for the RNN forecast:', 
+                                    options=df.columns, key='RNN Variable')
+
+        y = df[[forecast_Var]]
+        y = y.dropna()
+        
+        dataset = y.values
+        # dataset = dataset.astype('float32')
+        dataset_rounded = np.round(dataset, 2)
+        
+        st.write("Dataset successfully processed.")
+        
+    except TypeError as e:
+        if "unsupported operand type(s) for *: 'datetime.date' and 'float'" in str(e):
+            st.error(f"An unexpected error occurred: {e}. It seems like the selected column contains datetime values that cannot be processed as numerical data.")
+            st.warning("Please make sure that the selected column contains numerical values.")
+            st.stop()
+        else:
+            st.error(f"An unexpected error occurred: {e}")
+            st.error("""This is still an unknown error for us. Report it to us so that we 
+                          can fix it at the following address: riccardo.dandrea@hs-osnabrück.de""")
+            
+            st.stop()
+            
 
     dataframe_col, hist_col = st.columns(2)
 
