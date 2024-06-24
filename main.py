@@ -663,8 +663,6 @@ with st.expander('Recurrent Neural Network'):
             testScore = math.sqrt(mean_squared_error(testY[0], testPredict[:,0]))
             st.metric('Test Score: RMSE', round(testScore,2))
 
-        # shift train predictions for plotting
-        # we must shift the predictions so that they align on the x-axis with the original dataset. 
         trainPredictPlot = np.empty_like(dataset)
         trainPredictPlot[:, :] = np.nan
         trainPredictPlot[seq_size:len(trainPredict)+seq_size, :] = trainPredict
@@ -674,7 +672,56 @@ with st.expander('Recurrent Neural Network'):
         testPredictPlot[:, :] = np.nan
         testPredictPlot[len(trainPredict)+(seq_size*2)+1:len(dataset)-1, :] = testPredict
 
+        dataset_inverse = scaler.inverse_transform(dataset)
+
+        # Create plotly figure
+        fig = go.Figure()
+
+        # Add traces for the dataset, train prediction, and test prediction
+        fig.add_trace(go.Scatter(
+            x=np.arange(len(dataset_inverse)),
+            y=dataset_inverse.flatten(),
+            mode='lines',
+            name='Original Data'
+        ))
+
+        fig.add_trace(go.Scatter(
+            x=np.arange(len(trainPredictPlot)),
+            y=trainPredictPlot.flatten(),
+            mode='lines',
+            name='Train Prediction'
+        ))
+
+        fig.add_trace(go.Scatter(
+            x=np.arange(len(testPredictPlot)),
+            y=testPredictPlot.flatten(),
+            mode='lines',
+            name='Test Prediction'
+        ))
+
+        # Update layout
+        fig.update_layout(
+            title='Original Data and Predictions',
+            xaxis_title='Time',
+            yaxis_title='Value'
+        )
+
+        # Display the figure in Streamlit
+        st.plotly_chart(fig)
         
+        # Predict the next value
+        last_sequence = dataset[-seq_size:]
+        last_sequence = np.reshape(last_sequence, (1, 1, seq_size))
+        next_value_prediction = model.predict(last_sequence)
+        next_value_prediction = scaler.inverse_transform(next_value_prediction)
+
+        # Display the prediction
+        st.write("### Next Value Prediction:")
+        next_value_df = pd.DataFrame({
+            'Date': [pd.Timestamp.now().normalize() + pd.Timedelta(days=1)],
+            'Predicted Value': [next_value_prediction[0][0]]
+        })
+        st.dataframe(next_value_df)
         
         
     
