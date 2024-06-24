@@ -55,58 +55,68 @@ value_is_zero_in_train_size = load_lottieurl('https://assets7.lottiefiles.com/pa
 #############  L O T T I E _ F I L E S #################################################
 ########################################################################################
 
-
 # Title of the main page
 st.set_page_config(page_title='exploring-the-power-of-rnns', page_icon=':robot:', layout='wide')
 st.title('Recurrent Neural Network')
 
-
 st.sidebar.title('Recurrent Neural Network')
-file_uploader = st.sidebar.file_uploader('Upload your dataset', type=['csv'])
 
-
-def dataframe():
-    """
-    The following function gives the User the capability to 
-    enter a dataframe that he wants
-    """
-    uploaded_file = st.sidebar.file_uploader('Upload here your file', key='dataframe')
-    if uploaded_file is not None:
-        df = pd.read_csv(uploaded_file, sep=st.session_state.separator)
-        return df
-        
+# Expander for upload settings
+with st.sidebar.expander('Upload settings'):
+    separator, thousands = st.columns(2)
+    with separator:
+        selected_separator = st.selectbox('Value separator:', (",", ";", ".", ":"))
+    with thousands:
+        selected_thousands = st.selectbox('Thousands separator:', (".", ","), key='thousands')
     
+    decimal, unicode = st.columns(2)
+    with decimal:
+        selected_decimal = st.selectbox('Decimal separator:', (".", ","), key='decimal')
+    with unicode:
+        selected_unicode = st.selectbox('File encoding:', ('utf-8', 'utf-16', 'utf-32', 'iso-8859-1', 'cp1252'))
 
-def dataframe_from_url(url):
+def load_dataframe(uploaded_file):
+    """
+    Load a dataframe from the uploaded file with the selected separators.
+    """
+    if uploaded_file is not None:
+        return pd.read_csv(uploaded_file, sep=selected_separator, thousands=selected_thousands, decimal=selected_decimal, encoding=selected_unicode)
+
+def load_dataframe_from_url(url):
+    """
+    Load a dataframe from a URL.
+    """
     response = requests.get(url)
     content = response.content
-
-    # Speichern des Inhalts als temporäre Datei
     temp_file = 'temp.csv'
     with open(temp_file, 'wb') as f:
         f.write(content)
-
-    # Laden der CSV-Datei mit Pandas
-    dataset = pd.read_csv(temp_file, sep= st.session_state.separator)
+    dataset = pd.read_csv(temp_file, sep=selected_separator, thousands=selected_thousands, decimal=selected_decimal, encoding=selected_unicode)
     os.remove(temp_file)
-    dataset_regression = pd.DataFrame(dataset)
-    return dataset_regression
-  
-datasets = ['German DAX Data', 'APPLE stock Data', 'Own dataset']  # Liste der verfügbaren Datensätze
-selected_datasets = st.sidebar.selectbox('Choose your Dataset:', options=datasets)
+    return pd.DataFrame(dataset)
 
-if 'German DAX Data' in selected_datasets:
+datasets = ['Upload here your data','German DAX Data', 'APPLE stock Data', 'Own dataset']
+selected_dataset = st.sidebar.selectbox('Choose your dataset:', options=datasets)
+
+df = None
+if selected_dataset == 'Upload here your data':
+    st.write('Please upload your dataset')
+
+elif selected_dataset == 'German DAX Data':
     dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Bachelor/main/data/raw/DAX_Data.csv"
-    uploaded_file = dataframe_from_url(dataset_url)
+    df = load_dataframe_from_url(dataset_url)
 
-elif 'APPLE stock Data' in selected_datasets:
-    dataset_url = ""
-    uploaded_file = dataframe_from_url(dataset_url)
+elif selected_dataset == 'APPLE stock Data':
+    dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Bachelor/pred/data/raw/AAPL.csv"
+    df = load_dataframe_from_url(dataset_url)
 
-elif 'Own dataset' in selected_datasets:
-    uploaded_file = dataframe()   
-# Check if the file has been uploaded
-if file_uploader is None:           # If no file is uploaded
+elif selected_dataset == 'Own dataset':
+    file_uploader = st.sidebar.file_uploader('Upload your dataset', type=['csv'])
+    df = load_dataframe(file_uploader)
+
+# Check if the dataframe is loaded
+
+if df is None:
     st.sidebar.info('Please upload your dataset')
     st.markdown("""
         Welcome to the Recurrent Neural Network
@@ -114,38 +124,9 @@ if file_uploader is None:           # If no file is uploaded
         a Recurrent Neural Network using TensorFlow 
         and Keras.
         Please upload your dataset to get started
-        """)
-    
-    st_lottie(no_data_lottie)
-    st.stop()       # Stop the script so that we dont get an error
-
-else:
-    # Expander for upload settings.
-    with st.sidebar.expander('Upload settings'):
-        separator, thousands = st.columns(2)
-        with separator:
-            selected_separator = st.selectbox('value separator:', (",", ";", ".", ":"))
-        with thousands:
-            selected_thousands = st.selectbox('thousands separator:', (".", ","), key='thousands')
-        
-        decimal, unicode = st.columns(2)
-        with decimal:
-            selected_decimal = st.selectbox('decimal separator:', (".", ","), key='decimal')
-        with unicode:
-            selected_unicode = st.selectbox('file encoding:', ('utf-8', 'utf-16', 'utf-32', 'iso-8859-1', 'cp1252'))
-
-
-
-# Read the uploaded file into a DataFrame with the selected separators
-df = pd.read_csv(file_uploader, sep=selected_separator, 
-                thousands=selected_thousands, decimal=selected_decimal)
-
-# Spalte 'Date' in datetime-Objekte konvertieren
-# Sicherstellen, dass die 'Date'-Spalte im DateTime-Format ist
-df['Date'] = pd.to_datetime(df['Date'])
-
-# # Extrahieren Sie das Datum ohne die Zeitkomponente
-df['Date'] = df['Date'].dt.date
+    """)
+    st.lottie(no_data_lottie, speed=1)
+    st.stop()
 
 
 
