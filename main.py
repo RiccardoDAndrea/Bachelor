@@ -125,7 +125,7 @@ st.divider()
 
 with st.expander('Data Description'):
     st.subheader("Data Description: ")  
-    st.dataframe(df.describe())
+    st.dataframe(df.describe(), use_container_width=True)
 
 ##########################################################################################
 #############  D a t a _ d e s c r i b e #################################################
@@ -200,7 +200,7 @@ with st.expander('Data Cleaning'):
     st.subheader("Remove Columns:")
     selected_columns = st.multiselect("Choose your columns", df.columns)
     df = df.drop(selected_columns, axis=1)
-    st.dataframe(df)
+    st.dataframe(df, use_container_width=True)
     st.divider()
 
     st.subheader('Your DataFrame data types: ')
@@ -246,7 +246,7 @@ with st.expander('Data Cleaning'):
 
     # Display the DataFrame
     st.subheader('Modified DataFrame:')
-    st.dataframe(df)
+    st.dataframe(df, use_container_width=True)
 
 ##################################################################################################
 #############  D a t a _ C l e a n i n g #################################################
