@@ -13,6 +13,7 @@ import plotly.graph_objs as go
 import plotly.io as pio
 import requests
 import math
+import os 
 from sklearn.preprocessing import MinMaxScaler
 
 # function
@@ -55,17 +56,55 @@ value_is_zero_in_train_size = load_lottieurl('https://assets7.lottiefiles.com/pa
 ########################################################################################
 
 
-
-
-
 # Title of the main page
-st.set_page_config(page_title='Recurrent Neural Network', page_icon=':robot:', layout='wide')
+st.set_page_config(page_title='exploring-the-power-of-rnns', page_icon=':robot:', layout='wide')
 st.title('Recurrent Neural Network')
 
 
 st.sidebar.title('Recurrent Neural Network')
 file_uploader = st.sidebar.file_uploader('Upload your dataset', type=['csv'])
+
+
+def dataframe():
+    """
+    The following function gives the User the capability to 
+    enter a dataframe that he wants
+    """
+    uploaded_file = st.sidebar.file_uploader('Upload here your file', key='dataframe')
+    if uploaded_file is not None:
+        df = pd.read_csv(uploaded_file, sep=st.session_state.separator)
+        return df
+        
     
+
+def dataframe_from_url(url):
+    response = requests.get(url)
+    content = response.content
+
+    # Speichern des Inhalts als temporäre Datei
+    temp_file = 'temp.csv'
+    with open(temp_file, 'wb') as f:
+        f.write(content)
+
+    # Laden der CSV-Datei mit Pandas
+    dataset = pd.read_csv(temp_file, sep= st.session_state.separator)
+    os.remove(temp_file)
+    dataset_regression = pd.DataFrame(dataset)
+    return dataset_regression
+  
+datasets = ['German DAX Data', 'APPLE stock Data', 'Own dataset']  # Liste der verfügbaren Datensätze
+selected_datasets = st.sidebar.selectbox('Choose your Dataset:', options=datasets)
+
+if 'German DAX Data' in selected_datasets:
+    dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Bachelor/main/data/raw/DAX_Data.csv"
+    uploaded_file = dataframe_from_url(dataset_url)
+
+elif 'APPLE stock Data' in selected_datasets:
+    dataset_url = ""
+    uploaded_file = dataframe_from_url(dataset_url)
+
+elif 'Own dataset' in selected_datasets:
+    uploaded_file = dataframe()   
 # Check if the file has been uploaded
 if file_uploader is None:           # If no file is uploaded
     st.sidebar.info('Please upload your dataset')
@@ -95,9 +134,9 @@ else:
         with unicode:
             selected_unicode = st.selectbox('file encoding:', ('utf-8', 'utf-16', 'utf-32', 'iso-8859-1', 'cp1252'))
 
-   
 
-        # Read the uploaded file into a DataFrame with the selected separators
+
+# Read the uploaded file into a DataFrame with the selected separators
 df = pd.read_csv(file_uploader, sep=selected_separator, 
                 thousands=selected_thousands, decimal=selected_decimal)
 
