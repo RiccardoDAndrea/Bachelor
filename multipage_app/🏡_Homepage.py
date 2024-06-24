@@ -92,5 +92,7 @@ if 'Chatbot' in explination_homepage:
                 guests with allergies. 🍽️ Whether it's cars, buildings, or faces, 
                 object recognition allows us to identify and track everything in 
                 our environment.
-
-But here's a humorous twist: if you send the object recognition program to a party, it might hilariously attempt to label each pair of shoes as a separate object. 👠👞 That might not be the most practical application, but it sure adds a touch of whimsy to the capabilities of object recognition! 😄🌐""")
+                But here's a humorous twist: if you send the object recognition program 
+                to a party, it might hilariously attempt to label each pair of shoes as
+                a separate object. 👠👞 That might not be the most practical application, 
+                but it sure adds a touch of whimsy to the capabilities of object recognition! 😄🌐""")
