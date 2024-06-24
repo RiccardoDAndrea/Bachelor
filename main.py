@@ -100,7 +100,7 @@ selected_dataset = st.sidebar.selectbox('Choose your dataset:', options=datasets
 
 df = None
 if selected_dataset == 'Upload here your data':
-    st.write('Please upload your dataset')
+    st.write('')
 
 elif selected_dataset == 'German DAX Data':
     dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Bachelor/main/data/raw/DAX_Data.csv"
@@ -127,11 +127,6 @@ if df is None:
     """)
     st.lottie(no_data_lottie, speed=1)
     st.stop()
-
-
-
-
-    
 
 ### General Information about the data
 # Display the DataFrame
