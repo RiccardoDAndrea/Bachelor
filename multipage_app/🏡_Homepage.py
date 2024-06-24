@@ -48,7 +48,7 @@ explination_homepage = option_menu("Main Menu",
                                     ["Recurrent Neural Network",
                                     'Chatbots'], 
 
-                            icons = ['bar-chart-line-fill', 
+                            icons = ['bi-motherboard-fill', 
                                      'bi-robot'], 
 
                             menu_icon = "cast",
