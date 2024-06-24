@@ -60,7 +60,7 @@ explination_homepage = option_menu("Main Menu",
     
 if 'Recurrent Neural Network' in explination_homepage:
     # use of ccs because than we can center the tile otherwise it would be left orientited on the homepage
-    st.markdown(f"<div style='text-align:center;'><h1>Machine Learning</h1></div>",
+    st.markdown(f"<div style='text-align:center;'><h1>Recurrent Neural Network</h1></div>",
                 unsafe_allow_html=True)
     
 
@@ -80,7 +80,7 @@ if 'Recurrent Neural Network' in explination_homepage:
 if 'Chatbot' in explination_homepage:
 
     # use of ccs because than we can center the tile otherwise it would be left orientited on the homepage
-    st.markdown(f"<div style='text-align:center;'><h1>Objection Detection</h1></div>",
+    st.markdown(f"<div style='text-align:center;'><h1>Chatbot</h1></div>",
                 unsafe_allow_html=True)
     
 
