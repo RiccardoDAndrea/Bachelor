@@ -49,7 +49,7 @@ explination_homepage = option_menu("Main Menu",
                                     'Chatbots'], 
 
                             icons = ['bar-chart-line-fill', 
-                                     'bi bi-robot'], 
+                                     'bi-robot'], 
 
                             menu_icon = "cast",
 
