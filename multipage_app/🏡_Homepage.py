@@ -21,9 +21,6 @@ def load_lottieurl(url:str):
     return r.json()
 
 no_X_variable_lottie = load_lottieurl('https://assets10.lottiefiles.com/packages/lf20_ydo1amjm.json')
-wrong_data_type_ML = load_lottieurl('https://assets5.lottiefiles.com/packages/lf20_2frpohrv.json')
-no_data_lottie = load_lottieurl('https://lottie.host/08c7a53a-a678-4758-9246-7300ca6c3c3f/sLoAgnhaN1.json')
-value_is_zero_in_train_size = load_lottieurl('https://assets7.lottiefiles.com/packages/lf20_usmfx6bp.json')
 
 ########################################################################################
 #############  L O T T I E _ F I L E S #################################################
@@ -45,11 +42,13 @@ st.markdown("""
 
 
 explination_homepage = option_menu("Main Menu", 
-                                    ["Recurrent Neural Network",
-                                    'Chatbots'], 
+                                    ["Deep Learning",
+                                     "Recurrent Neural Network",
+                                     "Chatbots"], 
 
-                            icons = ['bi-motherboard-fill', 
-                                     'bi-robot'], 
+                            icons = ["bi-cpu-fill",
+                                     "bi-motherboard-fill", 
+                                     "bi-robot"], 
 
                             menu_icon = "cast",
 
@@ -57,7 +56,22 @@ explination_homepage = option_menu("Main Menu",
 
 
                             default_index = 0)
+
+
+if 'Deep Learning' in explination_homepage:
+    # use of ccs because than we can center the tile otherwise it would be left orientited on the homepage
+    st.markdown(f"<div style='text-align:center;'><h1>Deep Learning</h1></div>",
+                unsafe_allow_html=True)
     
+    
+
+    
+    st.write("""Deep learning is like a treasure hunt, with algorithms sifting 
+                through data to uncover hidden gems of knowledge. 🕵️‍♂️ Imagine 
+                you're a detective, piecing together clues to solve a mystery. 
+                🕵️‍♀️ Deep learning algorithms do the same, analyzing vast amounts 
+                of data to reveal patterns and insights. 📊🔍""")
+
 if 'Recurrent Neural Network' in explination_homepage:
     # use of ccs because than we can center the tile otherwise it would be left orientited on the homepage
     st.markdown(f"<div style='text-align:center;'><h1>Recurrent Neural Network</h1></div>",
@@ -92,7 +106,6 @@ if 'Chatbot' in explination_homepage:
                 guests with allergies. 🍽️ Whether it's cars, buildings, or faces, 
                 object recognition allows us to identify and track everything in 
                 our environment.
-             
                 But here's a humorous twist: if you send the object recognition program 
                 to a party, it might hilariously attempt to label each pair of shoes as
                 a separate object. 👠👞 That might not be the most practical application, 
