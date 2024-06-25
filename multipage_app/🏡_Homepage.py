@@ -88,7 +88,9 @@ if 'Deep Learning' in explination_homepage:
                 improve their performance as they are fed more data and undergo more 
                 training cycles, uncovering patterns and making accurate predictions 
                 or decisions. 📊🔍""")
-    st.lottie(deep_learning_explanation_lottie, speed=1, width=1200, height=400, key="Deep_Learning")
+    st.lottie(deep_learning_explanation_lottie, speed=1, 
+              width=1200, height=400, key="Deep_Learning",
+              quality="low")
 
 
 if 'Recurrent Neural Network' in explination_homepage:
@@ -106,7 +108,9 @@ if 'Recurrent Neural Network' in explination_homepage:
                 RNNs maintain a memory of previous inputs to influence the current 
                 output, making them powerful for language modeling, translation, 
                 and even predicting stock prices. 📈🧩""")
-    st.lottie(Rnn_explanation_lottie, speed=1, width=1200, height=400, key="RNN")
+    st.lottie(Rnn_explanation_lottie, speed=1, width=1200, 
+              height=400, key="RNN",
+              quality="low")
 
     
 #### Explination of what is Objection Detection
@@ -128,6 +132,8 @@ if 'Chatbot' in explination_homepage:
                 sophisticated, able to handle complex queries and offer more 
                 personalized experiences. 🚀""")
     
-    st_lottie(chatbot_explanation_lottie, width=1200, height=400, key="chatbot")
+    st_lottie(chatbot_explanation_lottie, width=1200, height=400, 
+              key="chatbot",
+              quality="low")
     
 
