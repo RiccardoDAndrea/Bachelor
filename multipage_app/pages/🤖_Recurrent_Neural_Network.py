@@ -134,7 +134,7 @@ if df is None:
         and Keras.
         Please upload your dataset to get started
     """)
-    st.lottie(Rnn_welcome_page_lottie, speed=1)
+    st.lottie(Rnn_welcome_page_lottie, speed=1, width=800, height=550)
     st.stop()
 
 
