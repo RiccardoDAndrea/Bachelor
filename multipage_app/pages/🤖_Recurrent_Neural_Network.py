@@ -150,7 +150,7 @@ st.divider()
 
 with st.expander('Data Description'):
     st.subheader("Data Description: ")  
-    st.dataframe(df.describe(), use_container_width=True)
+    st.dataframe(df.describe().round(2), use_container_width=True)
 
 ##########################################################################################
 #############  D a t a _ d e s c r i b e #################################################
