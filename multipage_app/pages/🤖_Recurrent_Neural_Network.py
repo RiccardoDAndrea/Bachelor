@@ -63,15 +63,20 @@ st.sidebar.title('Recurrent Neural Network')
 
 # Expander for upload settings
 with st.sidebar.expander('Upload settings'):
+
     separator, thousands = st.columns(2)
+    
     with separator:
         selected_separator = st.selectbox('Value separator:', (",", ";", ".", ":"))
+    
     with thousands:
         selected_thousands = st.selectbox('Thousands separator:', (".", ","), key='thousands')
     
     decimal, unicode = st.columns(2)
+    
     with decimal:
         selected_decimal = st.selectbox('Decimal separator:', (".", ","), key='decimal')
+    
     with unicode:
         selected_unicode = st.selectbox('File encoding:', ('utf-8', 'utf-16', 'utf-32', 'iso-8859-1', 'cp1252'))
 
@@ -89,10 +94,13 @@ def load_dataframe_from_url(url):
     response = requests.get(url)
     content = response.content
     temp_file = 'temp.csv'
+    
     with open(temp_file, 'wb') as f:
         f.write(content)
+    
     dataset = pd.read_csv(temp_file, sep=selected_separator, thousands=selected_thousands, decimal=selected_decimal, encoding=selected_unicode)
     os.remove(temp_file)
+    
     return pd.DataFrame(dataset)
 
 datasets = ['Upload here your data','German DAX Data', 'APPLE stock Data', 'Own dataset']
@@ -118,6 +126,7 @@ elif selected_dataset == 'Own dataset':
 
 if df is None:
     st.sidebar.info('Please upload your dataset')
+    
     st.markdown("""
         Welcome to the Recurrent Neural Network
         This is a simple example of how to create 
