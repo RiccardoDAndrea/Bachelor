@@ -48,7 +48,7 @@ def load_lottieurl(url:str):
 
 no_X_variable_lottie = load_lottieurl('https://assets10.lottiefiles.com/packages/lf20_ydo1amjm.json')
 wrong_data_type_ML = load_lottieurl('https://assets5.lottiefiles.com/packages/lf20_2frpohrv.json')
-no_data_lottie = load_lottieurl('https://lottie.host/08c7a53a-a678-4758-9246-7300ca6c3c3f/sLoAgnhaN1.json')
+Rnn_welcome_page_lottie = load_lottieurl('https://lottie.host/08c7a53a-a678-4758-9246-7300ca6c3c3f/sLoAgnhaN1.json')
 value_is_zero_in_train_size = load_lottieurl('https://assets7.lottiefiles.com/packages/lf20_usmfx6bp.json')
 
 ########################################################################################
@@ -108,7 +108,7 @@ selected_dataset = st.sidebar.selectbox('Choose your dataset:', options=datasets
 
 df = None
 if selected_dataset == 'Upload here your data':
-    st.write('')
+    st.write('Please upload your dataset')
 
 elif selected_dataset == 'German DAX Data':
     dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Bachelor/main/data/raw/DAX_Data.csv"
@@ -134,8 +134,9 @@ if df is None:
         and Keras.
         Please upload your dataset to get started
     """)
-    st.lottie(no_data_lottie, speed=1)
+    st.lottie(Rnn_welcome_page_lottie, speed=1)
     st.stop()
+
 
 ### General Information about the data
 # Display the DataFrame
