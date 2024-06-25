@@ -742,11 +742,14 @@ with st.expander('Recurrent Neural Network'):
 
         # Display the prediction
         st.write("### Next Value Prediction:")
-        next_value_df = pd.DataFrame({
-            'Date': [pd.Timestamp.now().normalize() + pd.Timedelta(days=1)],
-            'Predicted Value': [next_value_prediction[0][0]]
-        })
-        st.dataframe(next_value_df)
+        next_value = round(next_value_prediction[0][0], 2)
+
+        # Displaying the rounded prediction
+        st.metric(label="Prediction", value=next_value)
+
+
+
+
         
         
     
