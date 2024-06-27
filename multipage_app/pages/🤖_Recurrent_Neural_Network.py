@@ -162,7 +162,7 @@ with st.expander('Data Description'):
 #############  D a t a _ C l e a n i n g _ e n d #################################################
 ##################################################################################################
 
-with st.expander('Data Cleaning'):
+with st.expander('Data preprocessing'):
     st.subheader('How to proceed with NaN values')
     st.dataframe(df.isna().sum(), use_container_width=True) # get the sum of NaN values in the DataFrame
     checkbox_nan_values = st.checkbox("Do you want to replace the NaN values to proceed?", key="disabled")
@@ -254,8 +254,7 @@ with st.expander('Data Cleaning'):
                     dataframe[columns] = dataframe[columns].apply(pd.to_numeric, errors='coerce').astype('float64')
                 elif dtype == "string":
                     dataframe[columns] = dataframe[columns].astype('string')
-                elif dtype == "datetime64[ns]":
-                    dataframe[columns] = dataframe[columns].apply(pd.to_datetime, errors='coerce')
+
             except Exception as e:
                 st.error(f"Error converting columns {columns} to {dtype}: {e}")
 
@@ -290,7 +289,8 @@ with st.expander('Data Visualization'):
     options_of_charts = st.multiselect('What Graphs do you want?', 
                                        ('Linechart', 
                                         'Scatterchart',
-                                        'Correlation Matrix'))
+                                        'Correlation Matrix',
+                                        'Histogram'))
     for chart_type in options_of_charts:
 
         if chart_type == 'Scatterchart':
@@ -361,6 +361,15 @@ with st.expander('Data Visualization'):
             # Anzeigen der Plot
             st.plotly_chart(fig_correlation, use_container_width= True)
             fig_correlationplot = go.Figure(data=fig_correlation)
+
+        elif chart_type == 'Histogram':
+            column_name_col, train_slider_col,  = st.columns(2)
+            with column_name_col:
+                column_name = st.selectbox('Select column for Histogram', options=df.columns)
+            with train_slider_col:
+                train_bin_size = st.slider('Train Bin Size', min_value=1, max_value=100, step=1, value=10, format='%d', key='Vis_chart_type')
+            hist_plot_1 = px.histogram(df, x=column_name, nbins=train_bin_size, labels={'x': column_name, 'y': 'Count'}, title='Histogram')
+            st.plotly_chart(hist_plot_1)
 
 # ####################################################################################################
 # #############  D a t a _ V i s u a l i z a t i o n #################################################
