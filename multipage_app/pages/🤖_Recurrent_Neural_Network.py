@@ -663,10 +663,22 @@ with st.expander('Recurrent Neural Network'):
         model.summary(print_fn=lambda x: model_summary.append(x))
         for line in model_summary:
             st.write(line)
+        # Trainingscode hier einfügen, mit Fortschrittsbalken
+        progress_bar = st.progress(0)  # Initialisiere den Fortschrittsbalken
 
-        # Trainingscode hier einfügen
-        model.fit(trainX, trainY, validation_data=(testX, testY), 
-                verbose=2, epochs=epochs)
+        for epoch in range(epochs):
+            # Trainiere das Modell für eine Epoche
+            model.fit(trainX, trainY, validation_data=(testX, testY), verbose=2, epochs=1)
+            
+            # Aktualisiere den Fortschrittsbalken nach jeder Epoche
+            progress_bar.progress((epoch + 1) / epochs)
+
+        # Nachdem das Training abgeschlossen ist, hört der Fortschrittsbalken auf zu laufen
+        st.success('Training abgeschlossen!')
+        # # Trainingscode hier einfügen
+        # with st.spinner('Modell wird trainiert...'):
+        #     model.fit(trainX, trainY, validation_data=(testX, testY), 
+        #         verbose=2, epochs=epochs)
         
         trainPredict = model.predict(trainX)
         testPredict = model.predict(testX)
