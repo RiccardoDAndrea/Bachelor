@@ -70,7 +70,7 @@ with st.sidebar.expander('Upload settings'):
         selected_separator = st.selectbox('Value separator:', (",", ";", ".", ":"))
     
     with thousands:
-        selected_thousands = st.selectbox('Thousands separator:', (".", ","), key='thousands')
+        selected_thousands = st.selectbox('Thousands separator:', (",", "."), key='thousands')
     
     decimal, unicode = st.columns(2)
     
@@ -237,12 +237,12 @@ with st.expander('Data preprocessing'):
     # Column 1: Select columns and data type
     with change_data_type_col_1:
         selected_columns_1 = st.multiselect("Choose your columns", df.columns, key='change_data_type_1')
-        selected_dtype_1 = st.selectbox("Choose a data type", ["None","int64", "float64", "string", "datetime64[ns]"], key='selectbox_1')
+        selected_dtype_1 = st.selectbox("Choose a data type", ["None","int64", "float64", "string"], key='selectbox_1')
 
     # Column 2: Select columns and data type
     with change_data_type_col_2:
         selected_columns_2 = st.multiselect("Choose your columns", df.columns, key='change_data_type_2')
-        selected_dtype_2 = st.selectbox("Choose a data type", ["None", "int64", "float64", "string", "datetime64[ns]"], key='selectbox_2')
+        selected_dtype_2 = st.selectbox("Choose a data type", ["None", "int64", "float64", "string"], key='selectbox_2')
 
     # Function to change data types
     def change_data_types(dataframe, columns, dtype):
