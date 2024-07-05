@@ -528,9 +528,10 @@ with st.expander('Recurrent Neural Network'):
     
     with training_data:
         st.write(f"### Forecast Training Data X and Y - :blue[{forecast_Var}]")
+        st.write("#### Number of time steps to look back")
         train_x_col, train_y_col = st.columns(2)
         with train_x_col:
-            st.write("#### Number of time steps to look back")
+            st.write("#### Forecast Training Data X")
             st.dataframe(trainX, use_container_width=True)
             st.write("Shape of training set: {}".format(trainX.shape))
         
