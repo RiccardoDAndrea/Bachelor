@@ -16,18 +16,7 @@ import math
 import os 
 from sklearn.preprocessing import MinMaxScaler
 
-# function
-def to_sequences(dataset, seq_size=1):
-    x = []
-    y = []
 
-    for i in range(len(dataset)-seq_size-1):
-        #print(i)
-        window = dataset[i:(i+seq_size), 0]
-        x.append(window)
-        y.append(dataset[i+seq_size, 0])
-        
-    return np.array(x),np.array(y)
 
 ########################################################################################
 #############  L O T T I E _ F I L E S #################################################
@@ -515,16 +504,25 @@ with st.expander('Recurrent Neural Network'):
         st.write(" ")
         st.info("Sequence size is the number of time steps to look back like a memory of the model.")
     
+    # function
+    def to_sequences(dataset, seq_size=1):
+        x = []
+        y = []
+
+        for i in range(len(dataset)-seq_size-1):
+            #print(i)
+            window = dataset[i:(i+seq_size), 0]
+            x.append(window)
+            y.append(dataset[i+seq_size, 0])
+        
+        return np.array(x),np.array(y)
     trainX, trainY = to_sequences(train, seq_size)
     testX, testY = to_sequences(test, seq_size)
 
     
-    
-    
     # Layout for training data
     training_data, test_data = st.tabs(["Training Data", "Test Data"])
 
-    
     
     with training_data:
         st.write(f"### Training Data X and Y - :blue[{forecast_Var}]")
@@ -571,7 +569,7 @@ with st.expander('Recurrent Neural Network'):
     
 
     # Number of layers input
-    number_layers = st.number_input('Number of Layers', min_value=1, max_value=4, value=1, step=1)
+    number_layers = st.number_input('Number of Layers', min_value=1, max_value=5, value=1, step=1)
     #return_sequc = st.checkbox('Return Sequences', value=False) 
     
 
