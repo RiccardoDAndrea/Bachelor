@@ -12,6 +12,7 @@ from sklearn.metrics import mean_squared_error
 import plotly.express as px
 import plotly.graph_objs as go
 import plotly.io as pio
+from datetime import datetime, timedelta
 import datetime
 import requests
 import math
@@ -854,8 +855,49 @@ with st.expander('Recurrent Neural Network'):
         st.write("### Next Value Prediction:")
         next_value = round(next_value_prediction[0][0], 2)
 
-        # Displaying the rounded prediction
-        st.metric(label="Prediction", value=next_value)
+        # Finde das maximale Datum
+        max_date = df['Date'].max()  # Assuming 'Date' is a column
+
+        # Check the data type of max_date
+        if isinstance(max_date, datetime.datetime):
+            # Handle Timestamp (assuming 'Date' is a datetime column)
+            next_day = max_date + datetime.timedelta(days=1)
+        elif isinstance(max_date, str):
+            # Handle string representation (adjust format string as needed)
+            try:
+                # Assuming YYYY-MM-DD format
+                max_date = datetime.datetime.strptime(max_date, "%Y-%m-%d")
+                next_day = max_date + datetime.timedelta(days=1)
+            except ValueError:
+                # Handle potential format errors (optional)
+                print("Error: Invalid date format. Please check your data.")
+                next_day = None  # Set next_day to None or handle the error as needed
+        else:
+            # Handle unexpected data type (optional)
+            print("Error: Unexpected data type for 'Date' column. Please check your data.")
+            next_day = None  # Set next_day to None or handle the error as needed
+
+        # Formatiere das Datum in einen String (optional)
+        if next_day is not None:
+            next_day_str = next_day.strftime("%Y-%m-%d")  # Format as needed
+            #st.write(f"### Nächster Tag: {next_day_str}")  # Assuming German for "Next Day"
+        else:
+            st.write("### Nächster Tag: Berechnung fehlgeschlagen")  # Assuming German for "Failed to calculate next day"
+        
+        next_day_col, pred_col = st.columns(2)
+        with next_day_col:
+            st.metric(label="Next Day", value=next_day_str)
+        with pred_col:
+            st.metric(label="Prediction", value=next_value)
+        
+        
+        
+        # last_date = df['Date'].iloc[-1]
+
+        # # Einen Tag hinzufügen
+        # next_day = last_date + timedelta(days=1)
+        # st.write(next_day)
+        # st.metric(label="Prediction", value=next_value)
 
 
 
