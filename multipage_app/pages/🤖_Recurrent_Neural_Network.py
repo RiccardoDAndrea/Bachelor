@@ -736,7 +736,7 @@ with st.expander('Recurrent Neural Network'):
             chat_message_placeholder.chat_message('assistant').write('Model training completed!')
             
             # Warte ein paar Sekunden, bevor die Nachricht verschwindet
-            time.sleep(3)
+            #time.sleep(3)
             chat_message_placeholder.empty()  # Nachricht ausblenden
         
 
