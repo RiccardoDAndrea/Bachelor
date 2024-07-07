@@ -118,7 +118,7 @@ elif selected_dataset == 'German DAX Data':
 elif selected_dataset == 'Yahoo finance api':
     with st.sidebar.expander('Stocks Options'):
         st.info('Please enter the stocks you want to analyze and the date range.')
-        stock_options = st.text_input("Enter your Stocks (comma-separated)", value='AAPL')
+        stock_options = st.text_input("Enter your Stock", value='AAPL')
         stock_options = [stock.strip() for stock in stock_options.split(',')] 
         start_date_col, end_date_col = st.columns(2)
         with start_date_col:
@@ -294,7 +294,7 @@ with st.expander('Data preprocessing'):
                 elif dtype == "string":
                     dataframe[columns] = dataframe[columns].astype('string')
                 elif dtype == "datetime64[ns]":
-                    dataframe[columns] = pd.to_datetime(dataframe[columns], errors='coerce')
+                    dataframe[columns] = pd.to_datetime(dataframe[columns], errors='coerce')        
 
             except Exception as e:
                 st.error(f"Error converting columns {columns} to {dtype}: {e}")
