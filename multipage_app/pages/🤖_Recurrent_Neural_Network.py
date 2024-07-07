@@ -770,42 +770,80 @@ with st.expander('Recurrent Neural Network'):
 
         dataset_inverse = scaler.inverse_transform(dataset)
 
+        # Check if 'Date' or 'date' is in the DataFrame columns
+        if 'Date' in df.columns or 'date' in df.columns:
+            # Create plotly figure
+            fig = go.Figure()
 
-        # Create plotly figure
-        fig = go.Figure()
+            # Add traces for the dataset, train prediction, and test prediction
+            fig.add_trace(go.Scatter(
+                x=df['Date'],
+                y=dataset_inverse.flatten(),
+                mode='lines',
+                name='Original Data'
+            ))
 
-        # Add traces for the dataset, train prediction, and test prediction
-        fig.add_trace(go.Scatter(
-            x=np.arange(len(dataset_inverse)),
-            y=dataset_inverse.flatten(),
-            mode='lines',
-            name='Original Data'
-        ))
+            fig.add_trace(go.Scatter(
+                x=df['Date'][:len(trainPredictPlot)],
+                y=trainPredictPlot.flatten(),
+                mode='lines',
+                name='Train Prediction'
+            ))
 
-        fig.add_trace(go.Scatter(
-            x=np.arange(len(trainPredictPlot)),
-            y=trainPredictPlot.flatten(),
-            mode='lines',
-            name='Train Prediction'
-        ))
+            fig.add_trace(go.Scatter(
+                x=df['Date'][-len(testPredictPlot):],
+                y=testPredictPlot.flatten(),
+                mode='lines',
+                name='Test Prediction'
+            ))
 
-        fig.add_trace(go.Scatter(
-            x=np.arange(len(testPredictPlot)),
-            y=testPredictPlot.flatten(),
-            mode='lines',
-            name='Test Prediction'
-        ))
+            # Update layout
+            fig.update_layout(
+                title='Original Data and Predictions',
+                xaxis_title='Date',
+                yaxis_title='Value'
+            )
 
-        # Update layout
-        fig.update_layout(
-            title='Original Data and Predictions',
-            xaxis_title='Time',
-            yaxis_title='Value'
-        )
+            # Display the figure in Streamlit
+            st.plotly_chart(fig, use_container_width=True)
 
-        # Display the figure in Streamlit
-        st.plotly_chart(fig)
-        
+        else:
+            # Create plotly figure
+            fig = go.Figure()
+
+            # Add traces for the dataset, train prediction, and test prediction
+            fig.add_trace(go.Scatter(
+                x=np.arange(len(dataset_inverse)),
+                y=dataset_inverse.flatten(),
+                mode='lines',
+                name='Original Data'
+            ))
+
+            fig.add_trace(go.Scatter(
+                x=np.arange(len(trainPredictPlot)),
+                y=trainPredictPlot.flatten(),
+                mode='lines',
+                name='Train Prediction'
+            ))
+
+            fig.add_trace(go.Scatter(
+                x=np.arange(len(testPredictPlot)),
+                y=testPredictPlot.flatten(),
+                mode='lines',
+                name='Test Prediction'
+            ))
+
+            # Update layout
+            fig.update_layout(
+                title='Original Data and Predictions',
+                xaxis_title='Time',
+                yaxis_title='Value'
+            )
+
+            # Display the figure in Streamlit
+            st.plotly_chart(fig, use_container_width=True)
+
+                
         # Predict the next value
         last_sequence = dataset[-seq_size:]
         last_sequence = np.reshape(last_sequence, (1, 1, seq_size))
