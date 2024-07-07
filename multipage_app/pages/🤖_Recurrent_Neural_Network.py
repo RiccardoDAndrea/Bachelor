@@ -113,13 +113,13 @@ if selected_dataset == 'Upload here your data':
     st.write('Please upload your dataset')
 
 elif selected_dataset == 'Weather data for Germany':
-    dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Bachelor/main/data/raw/DAX_Data.csv"
+    dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Bachelor/main/data/processed/Weather_data.csv"
     df = load_dataframe_from_url(dataset_url)
 
 
 elif selected_dataset == 'Yahoo finance API':
-    with st.sidebar.expander('Stocks Options'):
-        st.info('Please enter the stocks you want to analyze and the date range.')
+    with st.sidebar.expander('Stock Options'):
+        st.info('Please enter the stock you want to analyze and the date range.')
         stock_options = st.text_input("Enter your Stock", value='AAPL')
         stock_options = [stock.strip() for stock in stock_options.split(',')] 
         start_date_col, end_date_col = st.columns(2)
