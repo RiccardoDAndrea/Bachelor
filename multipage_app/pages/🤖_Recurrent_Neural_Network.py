@@ -2,6 +2,7 @@ import streamlit as st
 from streamlit_lottie import st_lottie
 import pandas as pd
 import numpy as np
+import yfinance as yf
 import tensorflow as tf
 from keras.optimizers import Adam, SGD, RMSprop, Adadelta, Adagrad, Adamax, Nadam, Ftrl
 from keras.models import Sequential
@@ -11,29 +12,32 @@ from sklearn.metrics import mean_squared_error
 import plotly.express as px
 import plotly.graph_objs as go
 import plotly.io as pio
+import datetime
 import requests
 import math
 import os 
 from sklearn.preprocessing import MinMaxScaler
 
-
-
 ########################################################################################
 #############  L O T T I E _ F I L E S #################################################
 ########################################################################################
-def load_lottieurl(url:str): 
+
+def load_lottieurl(url:str):
     """ 
-    A funcztion to load lottie files from a url
+    A function to load lottie files from a url
 
     Input:
     - A URL of the lottie animation
     Output:
     - A lottie animation
     """
-    r = requests.get(url)
-    if r.status_code != 200:
+    try:
+        r = requests.get(url)
+        r.raise_for_status()  # Raise an exception for HTTP errors
+        return r.json()
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error loading Lottie animation from {url}: {str(e)}")
         return None
-    return r.json()
 
 no_X_variable_lottie = load_lottieurl('https://assets10.lottiefiles.com/packages/lf20_ydo1amjm.json')
 wrong_data_type_ML = load_lottieurl('https://assets5.lottiefiles.com/packages/lf20_2frpohrv.json')
@@ -44,11 +48,15 @@ value_is_zero_in_train_size = load_lottieurl('https://assets7.lottiefiles.com/pa
 #############  L O T T I E _ F I L E S #################################################
 ########################################################################################
 
-# Title of the main page
+# Set page configuration
 st.set_page_config(page_title='exploring-the-power-of-rnns', page_icon=':robot:', layout='wide')
 st.title('Recurrent Neural Network')
 
+# Sidebar title
 st.sidebar.title('Recurrent Neural Network')
+datasets = ['Upload here your data', 'German DAX Data', 'Yahoo finance api', 'Own dataset']
+selected_dataset = st.sidebar.selectbox('Choose your dataset:', options=datasets)
+
 
 # Expander for upload settings
 with st.sidebar.expander('Upload settings'):
@@ -80,21 +88,24 @@ def load_dataframe_from_url(url):
     """
     Load a dataframe from a URL.
     """
-    response = requests.get(url)
-    content = response.content
-    temp_file = 'temp.csv'
-    
-    with open(temp_file, 'wb') as f:
-        f.write(content)
-    
-    dataset = pd.read_csv(temp_file, sep=selected_separator, thousands=selected_thousands, decimal=selected_decimal, encoding=selected_unicode)
-    os.remove(temp_file)
-    
-    return pd.DataFrame(dataset)
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        content = response.content
+        temp_file = 'temp.csv'
+        
+        with open(temp_file, 'wb') as f:
+            f.write(content)
+        
+        dataset = pd.read_csv(temp_file, sep=selected_separator, thousands=selected_thousands, decimal=selected_decimal, encoding=selected_unicode)
+        os.remove(temp_file)
+        
+        return dataset  # Return DataFrame directly
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error loading dataset from {url}: {str(e)}")
+        return None
 
-datasets = ['Upload here your data','German DAX Data', 'APPLE stock Data', 'Own dataset']
-selected_dataset = st.sidebar.selectbox('Choose your dataset:', options=datasets)
-
+# Load the dataset
 df = None
 if selected_dataset == 'Upload here your data':
     st.write('Please upload your dataset')
@@ -103,13 +114,48 @@ elif selected_dataset == 'German DAX Data':
     dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Bachelor/main/data/raw/DAX_Data.csv"
     df = load_dataframe_from_url(dataset_url)
 
-elif selected_dataset == 'APPLE stock Data':
-    dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Bachelor/pred/data/raw/AAPL.csv"
-    df = load_dataframe_from_url(dataset_url)
+
+elif selected_dataset == 'Yahoo finance api':
+    with st.sidebar.expander('Stocks Options'):
+        st.info('Please enter the stocks you want to analyze and the date range.')
+        stock_options = st.text_input("Enter your Stocks (comma-separated)", value='AAPL')
+        stock_options = [stock.strip() for stock in stock_options.split(',')] 
+        start_date_col, end_date_col = st.columns(2)
+        with start_date_col:
+            start_date_input = st.date_input("Start", value=datetime.date(2024, 1, 1))  # Default Startdatum hinzugefügt
+        with end_date_col:
+            end_date_input = st.date_input("Last day", value=datetime.date.today())  # Default Enddatum hinzugefügt
+
+    data_frames = []
+        
+    for stock_option in stock_options:
+        try:
+            data = yf.download(stock_option, start=start_date_input, end=end_date_input)
+            if not data.empty:
+                data['Stock'] = stock_option  # Füge eine Spalte 'Stock' hinzu, um die Aktie zu identifizieren
+                data_frames.append(data)
+            else:
+                st.warning(f"No data found for {stock_option} in the specified date range.")
+        except Exception as e:
+            st.error(f"Error fetching data for {stock_option}: {str(e)}")
+    
+    if data_frames:
+        df = pd.concat(data_frames)
+        df.reset_index(inplace=True)  # Setze den Index zurück, falls gewünscht
+        df = df[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]  # Auswahl der relevanten Spalten
 
 elif selected_dataset == 'Own dataset':
     file_uploader = st.sidebar.file_uploader('Upload your dataset', type=['csv'])
     df = load_dataframe(file_uploader)
+
+# # Display DataFrame if loaded
+# if df is not None:
+#     st.subheader("Your DataFrame:")
+#     st.dataframe(df)
+# else:
+#     st.sidebar.info('Please upload your dataset or select a dataset option.')
+
+
 
 # Check if the dataframe is loaded
 
@@ -226,12 +272,16 @@ with st.expander('Data preprocessing'):
     # Column 1: Select columns and data type
     with change_data_type_col_1:
         selected_columns_1 = st.multiselect("Choose your columns", df.columns, key='change_data_type_1')
-        selected_dtype_1 = st.selectbox("Choose a data type", ["None","int64", "float64", "string"], key='selectbox_1')
-
+        selected_dtype_1 = st.selectbox("Choose a data type", ['None','int64', 
+                                                               'float64', 'string',
+                                                               'datime', 'datetime64[ns]'], key='selectbox_1')
+        
     # Column 2: Select columns and data type
     with change_data_type_col_2:
         selected_columns_2 = st.multiselect("Choose your columns", df.columns, key='change_data_type_2')
-        selected_dtype_2 = st.selectbox("Choose a data type", ["None", "int64", "float64", "string"], key='selectbox_2')
+        selected_dtype_2 = st.selectbox("Choose a data type", ['None','int64', 
+                                                               'float64', 'string',
+                                                               'datime', 'datetime64[ns]'],key='selectbox_2')
 
     # Function to change data types
     def change_data_types(dataframe, columns, dtype):
@@ -243,6 +293,8 @@ with st.expander('Data preprocessing'):
                     dataframe[columns] = dataframe[columns].apply(pd.to_numeric, errors='coerce').astype('float64')
                 elif dtype == "string":
                     dataframe[columns] = dataframe[columns].astype('string')
+                elif dtype == "datetime64[ns]":
+                    dataframe[columns] = pd.to_datetime(dataframe[columns], errors='coerce')
 
             except Exception as e:
                 st.error(f"Error converting columns {columns} to {dtype}: {e}")
@@ -613,10 +665,10 @@ with st.expander('Recurrent Neural Network'):
 
     optimizer_col, loss_col = st.columns(2)
     with optimizer_col:
-        optimizer = st.selectbox('Optimizer', ('adam', 'sgd', 'rmsprop', 'adadelta', 'adagrad', 'adamax', 'nadam', 'ftrl'))
+        optimizer = st.selectbox('Optimizer', ('adam', 'sgd', 'rmsprop', 'adadelta', 'adagrad'))
     with loss_col:
-        loss = st.selectbox('Loss', ('mean_squared_error', 'mean_absolute_error', 'mean_absolute_percentage_error', 'mean_squared_logarithmic_error', 'cosine_similarity', 'huber', 'logcosh', 'poisson', 'kullback_leibler_divergence', 'kl_divergence'))
-
+        loss = st.selectbox('Loss', ('mean_squared_error', 'mean_absolute_error', 'mean_absolute_percentage_error', 'mean_squared_logarithmic_error'))
+    
     if st.button('Compile and train the model'):
         model = Sequential()
         for i in range(number_layers):
@@ -648,12 +700,6 @@ with st.expander('Recurrent Neural Network'):
             opt = Adadelta(learning_rate=learning_rate)
         elif optimizer == 'adagrad':
             opt = Adagrad(learning_rate=learning_rate)
-        elif optimizer == 'adamax':
-            opt = Adamax(learning_rate=learning_rate)
-        elif optimizer == 'nadam':
-            opt = Nadam(learning_rate=learning_rate)
-        elif optimizer == 'ftrl':
-            opt = Ftrl(learning_rate=learning_rate)
         else:
             raise ValueError(f'Optimizer "{optimizer}" not recognized.')
 
@@ -698,15 +744,20 @@ with st.expander('Recurrent Neural Network'):
         # st.write(trainPredict.shape, trainY.shape)
         # st.write(testPredict.shape, testY.shape)
         st.write("### Model Evaluation:")
-
+        def format_loss_name(loss_name):
+            return loss_name.replace("_", " ").title()
+    
         RMSE_train_com, RMSE_test_com = st.columns(2)
         with RMSE_train_com:
             trainScore = math.sqrt(mean_squared_error(trainY[0], trainPredict[:,0]))
-            st.metric('Train Score: RMSE',round(trainScore,2))
+            formatted_loss_name = format_loss_name(loss)
+            st.metric(f"Train Score: ({formatted_loss_name})", str(round(trainScore, 2)))
+
 
         with RMSE_test_com:
             testScore = math.sqrt(mean_squared_error(testY[0], testPredict[:,0]))
-            st.metric('Test Score: RMSE', round(testScore,2))
+            formatted_loss_name = format_loss_name(loss)
+            st.metric(f"Test Score: ({formatted_loss_name})", str(round(testScore, 2)))
 
         trainPredictPlot = np.empty_like(dataset)
         trainPredictPlot[:, :] = np.nan
@@ -718,6 +769,7 @@ with st.expander('Recurrent Neural Network'):
         testPredictPlot[len(trainPredict)+(seq_size*2)+1:len(dataset)-1, :] = testPredict
 
         dataset_inverse = scaler.inverse_transform(dataset)
+
 
         # Create plotly figure
         fig = go.Figure()
