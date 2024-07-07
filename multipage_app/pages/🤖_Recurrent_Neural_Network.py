@@ -14,6 +14,7 @@ import plotly.graph_objs as go
 import plotly.io as pio
 from datetime import datetime, timedelta
 import datetime
+import time
 import requests
 import math
 import os 
@@ -709,23 +710,36 @@ with st.expander('Recurrent Neural Network'):
         model.summary(print_fn=lambda x: model_summary.append(x))
         for line in model_summary:
             st.write(line)
-        # Trainingscode hier einfügen, mit Fortschrittsbalken
-        progress_bar = st.progress(0)  # Initialisiere den Fortschrittsbalken
-
-        for epoch in range(epochs):
-            # Trainiere das Modell für eine Epoche
-            model.fit(trainX, trainY, validation_data=(testX, testY), verbose=2, epochs=1)
-            
-            # Aktualisiere den Fortschrittsbalken nach jeder Epoche
-            progress_bar.progress((epoch + 1) / epochs)
-
-        # Nachdem das Training abgeschlossen ist, hört der Fortschrittsbalken auf zu laufen
-        st.success('Training abgeschlossen!')
-        # # Trainingscode hier einfügen
-        # with st.spinner('Modell wird trainiert...'):
-        #     model.fit(trainX, trainY, validation_data=(testX, testY), 
-        #         verbose=2, epochs=epochs)
         
+        progress_bar = st.progress(0)
+
+        with st.spinner('Model training in progress...'):
+            # Platzhalter für die Chat-Nachricht erstellen
+            chat_message_placeholder = st.empty()
+            chat_message_placeholder.chat_message("assistant").write("Give me a second, I have to do some math...")
+
+            # Initialisiere Listen, um den Verlauf zu speichern
+            train_loss = []
+            val_loss = []
+
+            for epoch in range(epochs):
+                # Trainiere das Modell für eine Epoche
+                history = model.fit(trainX, trainY, validation_data=(testX, testY), verbose=2, epochs=1)
+                
+                # Speichere den Trainings- und Validierungsverlust
+                train_loss.append(history.history['loss'][0])
+                val_loss.append(history.history['val_loss'][0])
+
+                # Aktualisiere den Fortschrittsbalken nach jeder Epoche
+                progress_bar.progress((epoch + 1) / epochs)
+
+            chat_message_placeholder.chat_message('assistant').write('Model training completed!')
+            
+            # Warte ein paar Sekunden, bevor die Nachricht verschwindet
+            time.sleep(3)
+            chat_message_placeholder.empty()  # Nachricht ausblenden
+        
+
         trainPredict = model.predict(trainX)
         testPredict = model.predict(testX)
         # Überprüfen der Form der Ausgabe
@@ -745,6 +759,24 @@ with st.expander('Recurrent Neural Network'):
         # st.write(trainPredict.shape, trainY.shape)
         # st.write(testPredict.shape, testY.shape)
         st.write("### Model Evaluation:")
+
+
+        # Visualisiere den Trainingsverlauf mit Plotly
+        fig_gradient = go.Figure()
+        fig_gradient.add_trace(go.Scatter(x=list(range(epochs)), y=train_loss, mode='lines', name='Training Loss'))
+        fig_gradient.add_trace(go.Scatter(x=list(range(epochs)), y=val_loss, mode='lines', name='Validation Loss'))
+        fig_gradient.update_layout(
+            title='Training and Validation Loss',
+            xaxis_title='Epochs',
+            yaxis_title='Loss',
+            legend_title='Legend',
+        )
+
+        # Zeige den Plot in Streamlit
+        st.plotly_chart(fig_gradient, key='training_validation_loss')
+
+        
+
         def format_loss_name(loss_name):
             return loss_name.replace("_", " ").title()
     
