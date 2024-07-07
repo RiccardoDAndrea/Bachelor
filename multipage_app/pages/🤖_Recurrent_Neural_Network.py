@@ -713,8 +713,9 @@ with st.expander('Recurrent Neural Network'):
         
         progress_bar = st.progress(0)
 
+        # Modelltraining
+
         with st.spinner('Model training in progress...'):
-            # Platzhalter für die Chat-Nachricht erstellen
             chat_message_placeholder = st.empty()
             chat_message_placeholder.chat_message("assistant").write("Give me a second, I have to do some math...")
 
@@ -734,19 +735,15 @@ with st.expander('Recurrent Neural Network'):
                 progress_bar.progress((epoch + 1) / epochs)
 
             chat_message_placeholder.chat_message('assistant').write('Model training completed!')
-            
-            # Warte ein paar Sekunden, bevor die Nachricht verschwindet
-            #time.sleep(3)
-            chat_message_placeholder.empty()  # Nachricht ausblenden
-        
+            # Nachricht ausblenden
+            chat_message_placeholder.empty()
 
+        # Vorhersagen generieren
         trainPredict = model.predict(trainX)
         testPredict = model.predict(testX)
-        # Überprüfen der Form der Ausgabe
-        
-        # st.write(trainPredict.shape, testPredict.shape)
+
+        # Rücktransformation der Vorhersagen
         try:
-            
             trainPredict = scaler.inverse_transform(trainPredict)
             trainY = scaler.inverse_transform([trainY])
             testPredict = scaler.inverse_transform(testPredict)
@@ -755,11 +752,7 @@ with st.expander('Recurrent Neural Network'):
             st.error(f"An error occurred during inverse transformation: {e}")
             st.stop()
 
-
-        # st.write(trainPredict.shape, trainY.shape)
-        # st.write(testPredict.shape, testY.shape)
         st.write("### Model Evaluation:")
-
 
         # Visualisiere den Trainingsverlauf mit Plotly
         fig_gradient = go.Figure()
@@ -775,21 +768,18 @@ with st.expander('Recurrent Neural Network'):
         # Zeige den Plot in Streamlit
         st.plotly_chart(fig_gradient, key='training_validation_loss')
 
-        
-
         def format_loss_name(loss_name):
             return loss_name.replace("_", " ").title()
-    
+
         RMSE_train_com, RMSE_test_com = st.columns(2)
         with RMSE_train_com:
             trainScore = math.sqrt(mean_squared_error(trainY[0], trainPredict[:,0]))
-            formatted_loss_name = format_loss_name(loss)
+            formatted_loss_name = format_loss_name('loss')
             st.metric(f"Train Score: ({formatted_loss_name})", str(round(trainScore, 2)))
-
 
         with RMSE_test_com:
             testScore = math.sqrt(mean_squared_error(testY[0], testPredict[:,0]))
-            formatted_loss_name = format_loss_name(loss)
+            formatted_loss_name = format_loss_name('loss')
             st.metric(f"Test Score: ({formatted_loss_name})", str(round(testScore, 2)))
 
         trainPredictPlot = np.empty_like(dataset)
@@ -803,11 +793,11 @@ with st.expander('Recurrent Neural Network'):
 
         dataset_inverse = scaler.inverse_transform(dataset)
 
+        # Plot erstellen
+        fig = go.Figure()
+
         # Check if 'Date' or 'date' is in the DataFrame columns
         if 'Date' in df.columns or 'date' in df.columns:
-            # Create plotly figure
-            fig = go.Figure()
-
             # Add traces for the dataset, train prediction, and test prediction
             fig.add_trace(go.Scatter(
                 x=df['Date'],
@@ -830,20 +820,7 @@ with st.expander('Recurrent Neural Network'):
                 name='Test Prediction'
             ))
 
-            # Update layout
-            fig.update_layout(
-                title='Original Data and Predictions',
-                xaxis_title='Date',
-                yaxis_title='Value'
-            )
-
-            # Display the figure in Streamlit
-            st.plotly_chart(fig, use_container_width=True)
-
         else:
-            # Create plotly figure
-            fig = go.Figure()
-
             # Add traces for the dataset, train prediction, and test prediction
             fig.add_trace(go.Scatter(
                 x=np.arange(len(dataset_inverse)),
@@ -866,18 +843,64 @@ with st.expander('Recurrent Neural Network'):
                 name='Test Prediction'
             ))
 
-            # Update layout
-            fig.update_layout(
-                title='Original Data and Predictions',
-                xaxis_title='Time',
-                yaxis_title='Value'
-            )
+        # Update layout
+        fig.update_layout(
+            title='Original Data and Predictions',
+            xaxis_title='Date' if 'Date' in df.columns else 'Time',
+            yaxis_title='Value'
+        )
 
-            # Display the figure in Streamlit
-            st.plotly_chart(fig, use_container_width=True)
+        # Display the figure in Streamlit
+        st.plotly_chart(fig, use_container_width=True)
 
-                
-        # Predict the next value
+        # Funktion zur Vorhersage mehrerer zukünftiger Werte
+        def predict_future_values(model, last_sequence, scaler, days_to_predict):
+            future_predictions = []
+            current_sequence = last_sequence
+
+            for _ in range(days_to_predict):
+                next_value_prediction = model.predict(current_sequence)
+                next_value_prediction = scaler.inverse_transform(next_value_prediction)
+                future_predictions.append(next_value_prediction[0][0])
+
+                # Update the current sequence with the predicted value
+                next_value = next_value_prediction[0][0]
+                next_value_reshaped = np.array([[next_value]]).reshape((1, 1, 1))
+                current_sequence = np.append(current_sequence[:, :, 1:], next_value_reshaped, axis=2)
+
+            return future_predictions
+
+        # Anzahl der Tage, die vorhergesagt werden sollen
+        days_to_predict = 10  # Beispiel: 10 Tage
+
+        # Letzte Sequenz für die Vorhersage vorbereiten
+        last_sequence = dataset[-seq_size:]
+        last_sequence = np.reshape(last_sequence, (1, 1, seq_size))
+
+        # Vorhersagen für mehrere Tage
+        future_predictions = predict_future_values(model, last_sequence, scaler, days_to_predict)
+
+        # Erstellen Sie ein DataFrame mit den zukünftigen Daten
+        max_date = pd.to_datetime(df['Date'].max())  # Konvertieren in datetime-Objekt
+        future_dates = [max_date + datetime.timedelta(days=i) for i in range(1, days_to_predict + 1)]
+        future_df = pd.DataFrame({'Date': future_dates, 'Prediction': future_predictions})
+
+        # Anzeige der Vorhersagen in Streamlit
+        st.write("### Future Predictions:")
+        st.write(future_df)
+
+        # Vorhersagen zu Plot hinzufügen
+        fig.add_trace(go.Scatter(
+            x=future_dates,
+            y=future_predictions,
+            mode='lines',
+            name='Future Predictions'
+        ))
+
+        # Display the figure in Streamlit
+        st.plotly_chart(fig, use_container_width=True)
+
+        # Berechnung des nächsten Tages für die Vorhersage
         last_sequence = dataset[-seq_size:]
         last_sequence = np.reshape(last_sequence, (1, 1, seq_size))
         next_value_prediction = model.predict(last_sequence)
@@ -912,47 +935,46 @@ with st.expander('Recurrent Neural Network'):
         # Formatiere das Datum in einen String (optional)
         if next_day is not None:
             next_day_str = next_day.strftime("%Y-%m-%d")  # Format as needed
-            #st.write(f"### Nächster Tag: {next_day_str}")  # Assuming German for "Next Day"
         else:
-            st.write("### Nächster Tag: Berechnung fehlgeschlagen")  # Assuming German for "Failed to calculate next day"
-        
+            next_day_str = "Berechnung fehlgeschlagen"
+
         next_day_col, pred_col = st.columns(2)
         with next_day_col:
             st.metric(label="Next Day", value=next_day_str)
         with pred_col:
             st.metric(label="Prediction", value=next_value)
-        
-        
-        
-        # last_date = df['Date'].iloc[-1]
+                
+                
+                
+                # last_date = df['Date'].iloc[-1]
 
-        # # Einen Tag hinzufügen
-        # next_day = last_date + timedelta(days=1)
-        # st.write(next_day)
-        # st.metric(label="Prediction", value=next_value)
-
-
-
-
-        
-        
-    
-        
-
-
-        
-        
-        
-
-
-    
-    
-    
+                # # Einen Tag hinzufügen
+                # next_day = last_date + timedelta(days=1)
+                # st.write(next_day)
+                # st.metric(label="Prediction", value=next_value)
 
 
 
 
+                
+                
+            
+                
 
-####################################################################################################
-############# R e c c u r e n t _ N e u r a l _ N e t w o r k ######################################
-###################################################################################################
+
+                
+                
+                
+
+
+            
+            
+            
+
+
+
+
+
+        ####################################################################################################
+        ############# R e c c u r e n t _ N e u r a l _ N e t w o r k ######################################
+        ###################################################################################################
