@@ -1,4 +1,4 @@
-STATIONS_ID,Date,QN_3,  FX,  FM,QN_4, RSK,RSKF, SDK,SHK_TAG,  NM, VPM,  PM, TMK, UPM, TXK, TNK, TGK,eor
+Station_ID,Date,Quality_N3,  FX,  FM,Quality_N4, RSK,Precipitation_Type, SDK,Sunshine_Duration,  NM, VPM,  PM, TMK, UPM, TXK, TNK, TGK,End_of_Record
 73,1959-03-02,-999,-999,-999,5,0.0,0,-999.0,0,2.7,6.4,-999,1.0,91.0,10.2,-2.8,-3.2,eor
 73,1959-03-03,-999,-999,-999,5,0.0,0,-999.0,0,6.0,8.4,-999,6.1,86.0,13.0,-2.0,-3.0,eor
 73,1959-03-04,-999,-999,-999,5,0.0,0,-999.0,0,4.3,8.1,-999,7.2,82.0,10.5,3.2,3.0,eor

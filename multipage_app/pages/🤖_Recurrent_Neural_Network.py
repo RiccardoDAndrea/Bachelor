@@ -56,7 +56,7 @@ st.title('Recurrent Neural Network')
 
 # Sidebar title
 st.sidebar.title('Recurrent Neural Network')
-datasets = ['Upload here your data', 'German DAX Data', 'Yahoo finance api', 'Own dataset']
+datasets = ['Upload here your data', 'Weather data for Germany', 'Yahoo finance API', 'Own dataset']
 selected_dataset = st.sidebar.selectbox('Choose your dataset:', options=datasets)
 
 
@@ -112,12 +112,12 @@ df = None
 if selected_dataset == 'Upload here your data':
     st.write('Please upload your dataset')
 
-elif selected_dataset == 'German DAX Data':
+elif selected_dataset == 'Weather data for Germany':
     dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Bachelor/main/data/raw/DAX_Data.csv"
     df = load_dataframe_from_url(dataset_url)
 
 
-elif selected_dataset == 'Yahoo finance api':
+elif selected_dataset == 'Yahoo finance API':
     with st.sidebar.expander('Stocks Options'):
         st.info('Please enter the stocks you want to analyze and the date range.')
         stock_options = st.text_input("Enter your Stock", value='AAPL')
