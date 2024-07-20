@@ -30,7 +30,7 @@ chatbot_explanation_lottie = load_lottieurl('https://lottie.host/855882cd-791e-4
 
 # Title of the main page
 st.set_page_config(page_title='exploring-the-power-of-rnns', page_icon=':robot:', layout='wide')
-st.sidebar.title('Your Journes Starts Here 🚀')
+st.sidebar.title('Your Journey Starts Here 🚀')
 st.title(' Welcomen by Exploring the Power of RNNs and LLMs 🧠🤖📈🌐✨')
 
 
