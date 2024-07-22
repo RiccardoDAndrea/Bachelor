@@ -71,7 +71,7 @@ explination_homepage = option_menu("Main Menu",
 
                             default_index = 0)
 
-
+### Explanation of Deep Learning
 if 'Deep Learning' in explination_homepage:
     st.markdown(f"<div style='text-align:center;'><h1>Deep Learning</h1></div>",
                 unsafe_allow_html=True)
@@ -92,7 +92,7 @@ if 'Deep Learning' in explination_homepage:
               width=1200, height=400, key="Deep_Learning",
               quality="low")
 
-
+### Explanation of RNNs
 if 'Recurrent Neural Network' in explination_homepage:
     st.markdown(f"<div style='text-align:center;'><h1>Recurrent Neural Network</h1></div>",
                 unsafe_allow_html=True)
@@ -113,7 +113,7 @@ if 'Recurrent Neural Network' in explination_homepage:
               quality="low")
 
     
-#### Explination of what is Objection Detection
+### Explanation of Chatbots
 if 'Chatbot' in explination_homepage:
     st.markdown(f"<div style='text-align:center;'><h1>Chatbot</h1></div>",
                 unsafe_allow_html=True)
