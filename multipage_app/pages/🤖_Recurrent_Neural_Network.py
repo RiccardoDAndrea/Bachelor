@@ -684,10 +684,11 @@ with st.expander('Recurrent Neural Network'):
     epochs_col, lr_col = st.columns(2)
     
     with epochs_col:
-        epochs = st.number_input('Number of Epochs', min_value=1, max_value=100, value=5, step=1)
+        epochs = st.number_input('Number of Epochs', min_value=1, max_value=200, value=5, step=1)
     
     with lr_col:
-        learning_rate = st.number_input('Learning Rate', min_value=0.0000, max_value=0.1, value=0.001, step=0.0001)
+        learning_rate = st.number_input("Insert a number", min_value=0.0000001, value=0.01, step=0.0001, format="%.8f")
+
 
     optimizer_col, loss_col = st.columns(2)
     
