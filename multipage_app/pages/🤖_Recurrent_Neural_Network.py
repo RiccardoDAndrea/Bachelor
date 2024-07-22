@@ -4,26 +4,25 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 import tensorflow as tf
-from keras.optimizers import Adam, SGD, RMSprop, Adadelta, Adagrad, Adamax, Nadam, Ftrl
+from sklearn.preprocessing import MinMaxScaler
+from keras.optimizers import Adam, SGD, RMSprop, Adadelta, Adagrad
 from keras.models import Sequential
 from keras.layers import LSTM, GRU, Dense, Flatten
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 import plotly.express as px
 import plotly.graph_objs as go
-import plotly.io as pio
-from datetime import datetime, timedelta
+from datetime import datetime
 import datetime
-import time
 import requests
 import math
 import os 
-from sklearn.preprocessing import MinMaxScaler
+
 
 ########################################################################################
 #############  L O T T I E _ F I L E S #################################################
 ########################################################################################
-
+# get the lottie file to display the animation
 def load_lottieurl(url:str):
     """ 
     A function to load lottie files from a url
@@ -50,17 +49,23 @@ value_is_zero_in_train_size = load_lottieurl('https://assets7.lottiefiles.com/pa
 #############  L O T T I E _ F I L E S #################################################
 ########################################################################################
 
+
+########################################################################################
+#############  S_I_D_E_B_A_R ###########################################################
+########################################################################################
+
 # Set page configuration
 st.set_page_config(page_title='exploring-the-power-of-rnns', page_icon=':robot:', layout='wide')
 st.title('Recurrent Neural Network')
 
-# Sidebar title
+
 st.sidebar.title('Recurrent Neural Network')
+
 datasets = ['Upload here your data', 'Weather data for Germany', 'Yahoo finance API', 'Own dataset']
 selected_dataset = st.sidebar.selectbox('Choose your dataset:', options=datasets)
 
 
-# Expander for upload settings
+# Expander for upload settings in the sidebar
 with st.sidebar.expander('Upload settings'):
 
     separator, thousands = st.columns(2)
@@ -79,6 +84,8 @@ with st.sidebar.expander('Upload settings'):
     with unicode:
         selected_unicode = st.selectbox('File encoding:', ('utf-8', 'utf-16', 'utf-32', 'iso-8859-1', 'cp1252'))
 
+### end of the upload settings expander
+# will be uses if the user wants to upload a dataset from the local machine
 def load_dataframe(uploaded_file):
     """
     Load a dataframe from the uploaded file with the selected separators.
@@ -86,6 +93,7 @@ def load_dataframe(uploaded_file):
     if uploaded_file is not None:
         return pd.read_csv(uploaded_file, sep=selected_separator, thousands=selected_thousands, decimal=selected_decimal, encoding=selected_unicode)
 
+# gets the data from the yahoo finance API and the weather data for Germany
 def load_dataframe_from_url(url):
     """
     Load a dataframe from a URL.
@@ -107,6 +115,7 @@ def load_dataframe_from_url(url):
         st.error(f"Error loading dataset from {url}: {str(e)}")
         return None
 
+
 # Load the dataset
 df = None
 if selected_dataset == 'Upload here your data':
@@ -118,33 +127,41 @@ elif selected_dataset == 'Weather data for Germany':
 
 
 elif selected_dataset == 'Yahoo finance API':
+
     with st.sidebar.expander('Stock Options'):
+
         st.info('Please enter the stock you want to analyze and the date range.')
         stock_options = st.text_input("Enter your Stock", value='AAPL')
         stock_options = [stock.strip() for stock in stock_options.split(',')] 
         start_date_col, end_date_col = st.columns(2)
+
         with start_date_col:
-            start_date_input = st.date_input("Start", value=datetime.date(2024, 1, 1))  # Default Startdatum hinzugefügt
+            start_date_input = st.date_input("Start", value=datetime.date(2024, 1, 1))  # Default start date
+        
         with end_date_col:
-            end_date_input = st.date_input("Last day", value=datetime.date.today())  # Default Enddatum hinzugefügt
+            end_date_input = st.date_input("Last day", value=datetime.date.today())  # Default end date
 
     data_frames = []
         
     for stock_option in stock_options:
+
         try:
             data = yf.download(stock_option, start=start_date_input, end=end_date_input)
+
             if not data.empty:
-                data['Stock'] = stock_option  # Füge eine Spalte 'Stock' hinzu, um die Aktie zu identifizieren
+                data['Stock'] = stock_option  
                 data_frames.append(data)
+
             else:
                 st.warning(f"No data found for {stock_option} in the specified date range.")
+
         except Exception as e:
             st.error(f"Error fetching data for {stock_option}: {str(e)}")
     
     if data_frames:
         df = pd.concat(data_frames)
-        df.reset_index(inplace=True)  # Setze den Index zurück, falls gewünscht
-        df = df[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]  # Auswahl der relevanten Spalten
+        df.reset_index(inplace=True)  # Sreset the index
+        df = df[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]  # get only the columns we need
 
 elif selected_dataset == 'Own dataset':
     file_uploader = st.sidebar.file_uploader('Upload your dataset', type=['csv'])
@@ -196,7 +213,7 @@ with st.expander('Data Description'):
 
 
 ##################################################################################################
-#############  D a t a _ C l e a n i n g _ e n d #################################################
+#############  D a t a _ p r e p r o c e s s i n g _ s t a r t #################################################
 ##################################################################################################
 
 with st.expander('Data preprocessing'):
@@ -271,19 +288,19 @@ with st.expander('Data preprocessing'):
     
     change_data_type_col_1, change_data_type_col_2 = st.columns(2)
 
-    # Column 1: Select columns and data type
     with change_data_type_col_1:
         selected_columns_1 = st.multiselect("Choose your columns", df.columns, key='change_data_type_1')
         selected_dtype_1 = st.selectbox("Choose a data type", ['None','int64', 
                                                                'float64', 'string',
-                                                               'datime', 'datetime64[ns]'], key='selectbox_1')
+                                                               'datime', 'datetime64[ns]'], 
+                                                               key='selectbox_1')
         
-    # Column 2: Select columns and data type
     with change_data_type_col_2:
         selected_columns_2 = st.multiselect("Choose your columns", df.columns, key='change_data_type_2')
         selected_dtype_2 = st.selectbox("Choose a data type", ['None','int64', 
                                                                'float64', 'string',
-                                                               'datime', 'datetime64[ns]'],key='selectbox_2')
+                                                               'datime', 'datetime64[ns]'],
+                                                               key='selectbox_2')
 
     # Function to change data types
     def change_data_types(dataframe, columns, dtype):
@@ -442,9 +459,11 @@ with st.expander('Recurrent Neural Network'):
         
     except TypeError as e:
         if "unsupported operand type(s) for *: 'datetime.date' and 'float'" in str(e):
-            st.error(f"An unexpected error occurred: {e}. It seems like the selected column contains datetime values that cannot be processed as numerical data.")
+            st.error(f"""An unexpected error occurred: {e}. It seems like the selected column 
+                     contains datetime values that cannot be processed as numerical data.""")
             st.warning("Please make sure that the selected column contains numerical values.")
             st.stop()
+
         else:
             st.error(f"An unexpected error occurred: {e}")
             st.error("""This is still an unknown error for us. Report it to us so that we 
@@ -471,7 +490,7 @@ with st.expander('Recurrent Neural Network'):
     #st.write(dataset.shape)
     
     
-    # Ausgabe der Form des Datensatzes
+    # geting the shape of the dataset
     Datset_col, Scaled_dataset_col = st.columns(2)
     with Datset_col:
         st.subheader("Dataset Overview: " , forecast_Var)
@@ -492,15 +511,17 @@ with st.expander('Recurrent Neural Network'):
                      use_container_width=True, hide_index=True)
     
     with Scaled_dataset_col:
-    # Skalieren der Daten
+
+        # scaling the data using MinMaxScaler (beacause of the problem of vansihing gradient and exploding gradient)
         st.subheader('Scaled Data Overview:')
         scaler = MinMaxScaler(feature_range=(0, 1))  # Auch QuantileTransformer kann ausprobiert werden
         dataset = scaler.fit_transform(dataset)
         
+        # get the shape of the scaled dataset
         scaled_dtype_col, scaled_shape_col = st.columns(2)
         st.dataframe(pd.DataFrame(dataset, columns=[forecast_Var]), 
                             use_container_width=True, hide_index=True)  # Anzeigen des skalierten Datensatzes in einem DataFrame
-    
+
         with scaled_dtype_col:
             shape_str = ' , '.join(map(str, dataset.shape))
             st.write("Shape:", shape_str)
@@ -509,9 +530,9 @@ with st.expander('Recurrent Neural Network'):
             st.write(f'The data type: {dataset.dtype}')
             
     st.divider()
-    total_size = 100        # Total size of the dataset
-    initial_train_size = 60 # Initial train size
-    initial_test_size = 40  # Initial test size
+    total_size = 100            # Total size of the dataset
+    initial_train_size = 60     # Initial train size
+    initial_test_size = 40      # Initial test size
 
     # Columns for sliders
     train_size_col, test_size_col = st.columns(2)
@@ -558,7 +579,7 @@ with st.expander('Recurrent Neural Network'):
         st.write(" ")
         st.info("Sequence size is the number of time steps to look back like a memory of the model.")
     
-    # function
+    # sequence size like a memory of the model. chunking the data into smaller parts
     def to_sequences(dataset, seq_size=1):
         x = []
         y = []
@@ -623,7 +644,8 @@ with st.expander('Recurrent Neural Network'):
     
 
     # Number of layers input
-    number_layers = st.number_input('Number of Layers', min_value=1, max_value=5, value=1, step=1)
+    number_layers = st.number_input('Number of Layers', min_value=1, max_value=5, 
+                                    value=1, step=1)
     #return_sequc = st.checkbox('Return Sequences', value=False) 
     
 
@@ -633,7 +655,7 @@ with st.expander('Recurrent Neural Network'):
     return_sequences = []
     activations = []
 
-    # UI-Elemente zur Eingabe der Layer-Konfiguration
+    # UI-Elements for each layer
     for i in range(number_layers):
         st.write(f'Layer {i+1}')
         col1, col2, col3, col4 = st.columns(4)
@@ -658,19 +680,24 @@ with st.expander('Recurrent Neural Network'):
             else:
                 activations.append(None)
 
-    # Eingabe für Epochen, Optimizer und Loss-Funktion
+    # Input for optimizer, loss, epochs, and learning rate
     epochs_col, lr_col = st.columns(2)
+    
     with epochs_col:
         epochs = st.number_input('Number of Epochs', min_value=1, max_value=100, value=5, step=1)
+    
     with lr_col:
         learning_rate = st.number_input('Learning Rate', min_value=0.0000, max_value=0.1, value=0.001, step=0.0001)
 
     optimizer_col, loss_col = st.columns(2)
+    
     with optimizer_col:
         optimizer = st.selectbox('Optimizer', ('adam', 'sgd', 'rmsprop', 'adadelta', 'adagrad'))
+    
     with loss_col:
         loss = st.selectbox('Loss', ('mean_squared_error', 'mean_absolute_error', 'mean_absolute_percentage_error', 'mean_squared_logarithmic_error'))
     
+    # Different layers for the RNN Modell
     if st.button('Compile and train the model'):
         model = Sequential()
         for i in range(number_layers):
@@ -726,7 +753,7 @@ with st.expander('Recurrent Neural Network'):
                 # Trainiere das Modell für eine Epoche
                 history = model.fit(trainX, trainY, validation_data=(testX, testY), verbose=2, epochs=1)
                 
-                # Speichere den Trainings- und Validierungsverlust
+                # Saveing the loss values to display
                 train_loss.append(history.history['loss'][0])
                 val_loss.append(history.history['val_loss'][0])
 
@@ -735,14 +762,13 @@ with st.expander('Recurrent Neural Network'):
 
             chat_message_placeholder.chat_message('assistant').write('Model training completed!')
             
-            # Warte ein paar Sekunden, bevor die Nachricht verschwindet
-            #time.sleep(3)
-            chat_message_placeholder.empty()  # Nachricht ausblenden
+           
+            chat_message_placeholder.empty() # delete the chat message
         
 
         trainPredict = model.predict(trainX)
         testPredict = model.predict(testX)
-        # Überprüfen der Form der Ausgabe
+        # invert predictions
         
         # st.write(trainPredict.shape, testPredict.shape)
         try:
