@@ -652,7 +652,6 @@ with st.expander('Recurrent Neural Network'):
                                     value=1, step=1)
     #return_sequc = st.checkbox('Return Sequences', value=False) 
     
-
     st.divider()
     layer_types = []
     units = []
@@ -711,47 +710,29 @@ with st.expander('Recurrent Neural Network'):
     
     with loss_col:
         loss = st.selectbox('Loss', ('mean_squared_error', 'mean_absolute_error', 'mean_absolute_percentage_error', 'mean_squared_logarithmic_error'))
-
-    try:
-        # Different layers for the RNN Modell
-        if st.button('Compile and train the model'):
-            model = Sequential()
-            for i in range(number_layers):
-                if layer_types[i] == 'LSTM':
-                    if i == 0:
-                        model.add(LSTM(units[i], input_shape=(None, seq_size), return_sequences=return_sequences[i], activation=activations[i]))
-                    else:
-                        model.add(LSTM(units[i], return_sequences=return_sequences[i], activation=activations[i]))
-                elif layer_types[i] == 'GRU':
-                    if i == 0:
-                        model.add(GRU(units[i], input_shape=(None, seq_size), return_sequences=return_sequences[i], activation=activations[i]))
-                    else:
-                        model.add(GRU(units[i], return_sequences=return_sequences[i], activation=activations[i]))
-                elif layer_types[i] == 'Dense':
-                    if i == 0:
-                        model.add(Dense(units[i], input_shape=(seq_size,), activation=activations[i]))
-                    else:
-                        model.add(Dense(units[i], activation=activations[i]))
-                elif layer_types[i] == 'Flatten':
-                    model.add(Flatten())
     
-    except Exception as e:
-        st.error(f"An error occurred during model creation: {e}")
-        st.info(f"""
-                Oops, it seems there was an issue with model creation.
-
-                Please check the following:
-
-                - Ensure that the model infrastructure is correct. For a proper RNN model, the infrastructure might look like:
-
-                > LSTM, Neurons = 64, Activation = relu
-                > LSTM, Neurons = 64, Activation = relu
-                > LSTM, Neurons = 64, Activation = relu
-                > Dense, Neurons = 1, Activation = None
-
-                - Make sure that the output layer has the same shape as the input data. For example: {forecast_Var}.
-                """)
-        
+    # Different layers for the RNN Modell
+    
+    if st.button('Compile and train the model'):
+        model = Sequential()
+        for i in range(number_layers):
+            if layer_types[i] == 'LSTM':
+                if i == 0:
+                    model.add(LSTM(units[i], input_shape=(None, seq_size), return_sequences=return_sequences[i], activation=activations[i]))
+                else:
+                    model.add(LSTM(units[i], return_sequences=return_sequences[i], activation=activations[i]))
+            elif layer_types[i] == 'GRU':
+                if i == 0:
+                    model.add(GRU(units[i], input_shape=(None, seq_size), return_sequences=return_sequences[i], activation=activations[i]))
+                else:
+                    model.add(GRU(units[i], return_sequences=return_sequences[i], activation=activations[i]))
+            elif layer_types[i] == 'Dense':
+                if i == 0:
+                    model.add(Dense(units[i], input_shape=(seq_size,), activation=activations[i]))
+                else:
+                    model.add(Dense(units[i], activation=activations[i]))
+            elif layer_types[i] == 'Flatten':
+                model.add(Flatten())
 
         if optimizer == 'adam':
             opt = Adam(learning_rate=learning_rate)
@@ -765,7 +746,7 @@ with st.expander('Recurrent Neural Network'):
             opt = Adagrad(learning_rate=learning_rate)
         else:
             raise ValueError(f'Optimizer "{optimizer}" not recognized.')
-    
+
         model.compile(loss=loss, optimizer=opt)
         model_summary = []
         model.summary(print_fn=lambda x: model_summary.append(x))
@@ -811,7 +792,8 @@ with st.expander('Recurrent Neural Network'):
                     Choose a learning rate between 0.0000001 and 0.1.
                 """)
                 st.stop()
-        
+
+            
         try:
                 # make predictions
             trainPredict = model.predict(trainX)
