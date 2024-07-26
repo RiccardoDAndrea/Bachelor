@@ -658,15 +658,17 @@ with st.expander('Recurrent Neural Network'):
     # UI-Elements for each layer
     for i in range(number_layers):
         st.write(f'Layer {i+1}')
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
+        select_layer_typ_col, select_neurons_col, activation_col, col4 = st.columns(4)
+        with select_layer_typ_col:
             layer_type = st.selectbox(f'Layer {i+1} Type', ('Dense', 'LSTM', 'GRU', 'Flatten'), key=f'layer_type_{i}')
             layer_types.append(layer_type)
-        with col2:
+        with select_neurons_col:
             unit = st.number_input(f'Units in Layer {i+1}', min_value=1, max_value=512, value=64, step=1, key=f'units_{i}')
             units.append(unit)
-        with col3:
+        with activation_col:
             if layer_type in ['LSTM', 'GRU']:
+                # activation = st.selectbox(f'Activation Function for Dense Layer {i+1}', ('None', 'relu', 'sigmoid', 'tanh', 'softmax'), key=f'activation_{i}')
+                # activations.append(None if activation == 'None' else activation)
                 st.write(" ")
                 st.write(" ")
                 return_seq = st.checkbox(f'Return Sequences in Layer {i+1}', key=f'return_seq_{i}')
@@ -674,11 +676,10 @@ with st.expander('Recurrent Neural Network'):
             else:
                 return_sequences.append(None)  # None für Dense Layer
         with col4:
-            if layer_type == 'Dense':
-                activation = st.selectbox(f'Activation Function for Dense Layer {i+1}', ('None', 'relu', 'sigmoid', 'tanh', 'softmax'), key=f'activation_{i}')
-                activations.append(None if activation == 'None' else activation)
-            else:
-                activations.append(None)
+            
+            activation = st.selectbox(f'Activation Function for Dense Layer {i+1}', ('None', 'relu', 'sigmoid', 'tanh', 'softmax'), key=f'activation_{i}')
+            activations.append(None if activation == 'None' else activation)
+            
 
     # Input for optimizer, loss, epochs, and learning rate
     epochs_col, lr_col = st.columns(2)
@@ -703,14 +704,14 @@ with st.expander('Recurrent Neural Network'):
         for i in range(number_layers):
             if layer_types[i] == 'LSTM':
                 if i == 0:
-                    model.add(LSTM(units[i], input_shape=(None, seq_size), return_sequences=return_sequences[i]))
+                    model.add(LSTM(units[i], input_shape=(None, seq_size), return_sequences=return_sequences[i], activation=activations[i]))
                 else:
-                    model.add(LSTM(units[i], return_sequences=return_sequences[i]))
+                    model.add(LSTM(units[i], return_sequences=return_sequences[i], activation=activations[i]))
             elif layer_types[i] == 'GRU':
                 if i == 0:
-                    model.add(GRU(units[i], input_shape=(None, seq_size), return_sequences=return_sequences[i]))
+                    model.add(GRU(units[i], input_shape=(None, seq_size), return_sequences=return_sequences[i], activation=activations[i]))
                 else:
-                    model.add(GRU(units[i], return_sequences=return_sequences[i]))
+                    model.add(GRU(units[i], return_sequences=return_sequences[i], activation=activations[i]))
             elif layer_types[i] == 'Dense':
                 if i == 0:
                     model.add(Dense(units[i], input_shape=(seq_size,), activation=activations[i]))
