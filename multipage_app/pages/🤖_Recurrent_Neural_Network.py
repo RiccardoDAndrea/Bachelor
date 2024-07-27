@@ -126,7 +126,7 @@ elif selected_dataset == 'Weather data for Germany':
     df = load_dataframe_from_url(dataset_url)
 
 elif selected_dataset == 'Covid 19 confirmed Cases':
-    dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Exploring-the-power-of-rnns/gridsearch/confirmed_cases_by_country.csv"
+    dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Exploring-the-power-of-rnns/main/confirmed_cases_by_country.csv"
     df = load_dataframe_from_url(dataset_url)
 
 
