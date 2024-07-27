@@ -622,9 +622,28 @@ with st.expander('Recurrent Neural Network'):
 
         
         
+        try:
+            trainX = np.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
+            testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
+        except IndexError as e:
+            if "tuple index out of range" in str(e):
+                st.error("An error occurred during reshaping the data. Please check the train or test size and try again.")
+                st.info("""
+                        Ups something went wrong. Here are some suggestions for improvement:
+                        
+                        It looks like you have set the train size or the test size to 0 or to a value that is too large.
+                        
+                        1. **Train Size and Test Size:**
+                            - Make sure that the sum of the train size and the test size is equal to 100%.
+                            For example:
+                            - Train Size: 70%
+                            - Test Size: 30%
+                            - Total Size: 100%
+                        
 
-        trainX = np.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
-        testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
+                        """)
+                st.stop()
+
 
 
 
