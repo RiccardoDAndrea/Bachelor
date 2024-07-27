@@ -622,7 +622,7 @@ with st.expander('Recurrent Neural Network'):
 
         
         
-
+    
         trainX = np.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
         testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
 
