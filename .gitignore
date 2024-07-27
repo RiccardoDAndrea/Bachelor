@@ -1,7 +1,11 @@
 #venv
-Bachelor/
-rnn/
-hs/
-test_/
+
 RNN/
+<<<<<<< HEAD
 venv2/
+=======
+grid/
+tfkeras/
+venv1/
+venv2/
+>>>>>>> gridsearch
