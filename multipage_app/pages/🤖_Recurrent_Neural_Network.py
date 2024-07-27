@@ -796,7 +796,7 @@ with st.expander('Recurrent Neural Network'):
 
                     - Consider adding more layers or adjusting the existing ones to enhance performance.
                     """)
-                    
+
                     st.stop()
 
                 
@@ -1010,14 +1010,21 @@ with st.expander('Recurrent Neural Network'):
                 if "could not broadcast input array from shape" in str(e):
                     st.error("Oops, an error occurred: could not broadcast input array from shape (14122,2) into shape (14122,1)")
                     st.info("""
-                            This might be because you specified 2 neurons in your RNN model instead of 1. 
-                            Please check your model configuration and ensure that the output layer has only one neuron if this is required.
+                            This issue may be caused by specifying two or more neurons in the output layer of your RNN model instead of just one. Please review your model configuration and ensure that the output layer has only one neuron if this is a requirement.
+
+                            Refer to the following architecture guide for proper configuration:
+
+                                LSTM,   128 units,    return_sequences=True,    (activation = relu)
+                                LSTM,   128 units,    return_sequences=False,   (activation = sigmoid)      
+                                Dense,  1 unit,       activation=relu
                             
-                            Use the following structure as a architecture guide :
+                            or
+
+                                LSTM,   128 units,    return_sequences=True,    (activation = relu)
+                                GRU,    128 units,    return_sequences=False,   (activation = tanh)
+                                Dense,  1 unit,       activation=relu
                             
-                                LSTM,   128,    return_sequence = True
-                                LSTM,   128,    return_sequence = False
-                                DENSE,  1,      activation = relu    
+                            Ensure that the output layer has exactly one unit to meet the requirements.
                             """)
                     st.stop()
                 else:
@@ -1059,28 +1066,51 @@ with st.expander('Recurrent Neural Network'):
                         Oops, something went wrong
                         Here is a list of what could be improved :
                         
-                        > Your architecture does not fit.
+                        Your architecture does not fit.
                         
                         Use the following structure as a architecture guide :
                             
-                            LSTM,   128,    return_sequence = True
-                            LSTM,   128,    return_sequence = False
-                            DENSE,  1,      activation = relu 
+                            LSTM,   128 units,    return_sequence = True
+                            LSTM,   128 units,    return_sequence = False
+                            DENSE,  1 unit,      activation = relu 
+                    
+                            or
+                    
+                            LSTM,   128 units,    return_sequence = True
+                            GRU,    128 units,    return_sequence = False
+                            DENSE,  1 unit,      activation = relu 
                         Keep in mind its a RNN Model so `return_sequence` is important. 
                         Set it to True if you have more than 1 layer.                     
                     """)
             st.stop()
 
+    except TypeError as e:
+        if  "can't multiply sequence by non-int of type 'float'" in str(e):
+            st.error(f"An error occurred: {e}")
+            st.info(f"""
+                    The column used for the RNN forecast, **'{forecast_Var}'**, contains non-numeric values and cannot be processed as numerical data. The current data type of this column is **{df[forecast_Var].dtypes}**. Please ensure that all values are numeric.
+
+                    - In the **Data Preprocessing** section (accessible via the expander), you have the option to change the data type of this column.
+                    - The column should contain numeric values (either integers or floats) for the model to be trained effectively.
+
+                    Please verify and correct the data type to ensure proper training of the model.
+                    """)
+
+                                
+           
+            
     except NameError as e:
         st.error(f"A NameError occurred: {e}")
         st.error("""This may be due to a variable or function name being used before it's defined. Please check your code and correct any naming issues.""")
         st.stop()
 
     except Exception as e:
+        st.write(e)
         st.error(f"An unexpected error occurred: {e}")
         st.error("""(2). This is an unknown error for us. Please report it to us so that we 
                     can investigate and fix it. Contact: riccardo.dandrea@hs-osnabrück.de""")
         st.stop()
+    
 
 ####################################################################################################
 ############# R e c c u r e n t _ N e u r a l _ N e t w o r k ######################################
