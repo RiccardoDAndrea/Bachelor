@@ -61,7 +61,7 @@ st.title('Recurrent Neural Network')
 
 st.sidebar.title('Recurrent Neural Network')
 
-datasets = ['Upload here your data', 'Weather data for Germany','Covid 19 confirmed Cases', 'Yahoo finance API', 'Own dataset']
+datasets = ['Upload here your data', 'Weather data for Germany','Covid 19 confirmed Cases', 'Yahoo finance API']
 selected_dataset = st.sidebar.selectbox('Choose your dataset:', options=datasets)
 
 
@@ -119,7 +119,9 @@ def load_dataframe_from_url(url):
 # Load the dataset
 df = None
 if selected_dataset == 'Upload here your data':
-    st.write('Please upload your dataset')
+    
+    file_uploader = st.sidebar.file_uploader('Upload your dataset', type=['csv'])
+    df = load_dataframe(file_uploader)
 
 elif selected_dataset == 'Weather data for Germany':
     dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Bachelor/main/data/processed/Weather_data.csv"
@@ -164,12 +166,10 @@ elif selected_dataset == 'Yahoo finance API':
     
     if data_frames:
         df = pd.concat(data_frames)
-        df.reset_index(inplace=True)  # Sreset the index
+        df.reset_index(inplace=True)  # reset the index
         df = df[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]  # get only the columns we need
 
-elif selected_dataset == 'Own dataset':
-    file_uploader = st.sidebar.file_uploader('Upload your dataset', type=['csv'])
-    df = load_dataframe(file_uploader)
+
 
 # # Display DataFrame if loaded
 # if df is not None:
@@ -186,11 +186,17 @@ if df is None:
     st.sidebar.info('Please upload your dataset')
     
     st.markdown("""
-        Welcome to the Recurrent Neural Network
-        This is a simple example of how to create 
-        a Recurrent Neural Network using TensorFlow 
-        and Keras.
-        Please upload your dataset to get started
+    ### Create Your Own RNN Architecture 😊
+    """)
+
+    st.info(""" **Start by uploading your own data or using the data stored for you.** 📁""")
+
+    st.write("""        
+    1. You can then examine the data and make edits in the **data preprocessing expander**. 🔍🛠️
+
+    2. You also have the option to **visualize the data**. 📊📈
+
+    3. Finally, you can **build your own RNN architecture**. 🧠🔧
     """)
     st.lottie(Rnn_welcome_page_lottie, speed=1, width=800, height=550)
     st.stop()
@@ -242,29 +248,29 @@ with st.expander('Data preprocessing'):
         if 'with Median' in missing_values:
             uploaded_file_median = df[numeric_columns].median()
             df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_median)
-            st.write('##### You have succesfully change the NaN values :blue[with the Median]')
+            st.write('##### You have successfully changed the NaN values :blue[with the Median]')
             st.dataframe(df.isna().sum(), use_container_width=True)
 
         elif 'interpolate' in missing_values:
             df = df.interpolate()
-            st.write('##### You have succesfully :blue[interpolated the NaN values]')
+            st.write('##### You have successfully :blue[interpolated the NaN values]')
             st.dataframe(df.isna().sum(), use_container_width=True)
 
         elif 'Drop rows with NaN values' in missing_values:
             df = df.dropna()
-            st.write('##### You have succesfully :blue[drop rows with NaN values]')
+            st.write('##### You have successfully :blue[drop rows with NaN values]')
             st.dataframe(df.isna().sum(), use_container_width=True)
             
         elif 'with Mean' in missing_values:
             uploaded_file_mean = df[numeric_columns].mean()
             df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_mean)
-            st.markdown(' ##### You have succesfully change the NaN values :blue[ with the Mean]')
+            st.markdown(' ##### You have successfully change the NaN values :blue[ with the Mean]')
             st.dataframe(df.isna().sum(), use_container_width=True)
 
         elif 'with Minimum value' in missing_values:
             uploaded_file_min = df[numeric_columns].min()
             df[numeric_columns] = df[numeric_columns].fillna(uploaded_file_min)
-            st.write('##### You have succesfully change the NaN values :blue[with the minimum values]')
+            st.write('##### You have successfully change the NaN values :blue[with the minimum values]')
             st.dataframe(df.isna().sum(), use_container_width=True)
             
         elif 'with Maximum value' in missing_values:
@@ -290,7 +296,7 @@ with st.expander('Data preprocessing'):
     st.dataframe(df.dtypes, use_container_width=True)
     st.subheader("Change your Data Types:")
     
-    change_data_type_col_1, change_data_type_col_2 = st.columns(2)
+    change_data_type_col_1, change_data_type_col_2, change_data_type_col_3, change_data_type_col_4 = st.columns(4)
 
     with change_data_type_col_1:
         selected_columns_1 = st.multiselect("Choose your columns", df.columns, key='change_data_type_1')
@@ -298,14 +304,26 @@ with st.expander('Data preprocessing'):
                                                                'float64', 
                                                                'string'], 
                                                                key='selectbox_1')
-        
     with change_data_type_col_2:
         selected_columns_2 = st.multiselect("Choose your columns", df.columns, key='change_data_type_2')
-        selected_dtype_2 = st.selectbox("Choose a data type", ['None',
+        selected_dtype_2 = st.selectbox("Choose a data type", ['None','int64', 
+                                                               'float64', 
+                                                               'string'], 
+                                                               key='selectbox_2')
+    with change_data_type_col_3:
+        selected_columns_3 = st.multiselect("Choose your columns", df.columns, key='change_data_type_3')
+        selected_dtype_3 = st.selectbox("Choose a data type", ['None','int64', 
+                                                               'float64', 
+                                                               'string'], 
+                                                               key='selectbox_3')
+        
+    with change_data_type_col_4:
+        selected_columns_4 = st.multiselect("Choose your columns", df.columns, key='change_data_type_4')
+        selected_dtype_4 = st.selectbox("Choose a data type", ['None',
                                                                'int64', 
                                                                'float64', 
                                                                'string'],
-                                                               key='selectbox_2')
+                                                               key='selectbox_4')
 
     # Function to change data types
     def change_data_types(dataframe, columns, dtype):
@@ -325,6 +343,8 @@ with st.expander('Data preprocessing'):
     # Apply data type changes
     change_data_types(df, selected_columns_1, selected_dtype_1)
     change_data_types(df, selected_columns_2, selected_dtype_2)
+    change_data_types(df, selected_columns_3, selected_dtype_3)
+    change_data_types(df, selected_columns_4, selected_dtype_4)
 
     st.divider()
 
@@ -434,7 +454,7 @@ with st.expander('Data Visualization'):
                 train_bin_size = st.slider('Train Bin Size', min_value=1, max_value=100, step=1, value=10, format='%d', key='Vis_chart_type')
             hist_plot_1 = px.histogram(df, x=column_name, nbins=train_bin_size, labels={'x': column_name, 'y': 'Count'}, title='Histogram')
             st.plotly_chart(hist_plot_1)
-
+            
 # ####################################################################################################
 # #############  D a t a _ V i s u a l i z a t i o n #################################################
 # ####################################################################################################
@@ -564,7 +584,7 @@ with st.expander('Recurrent Neural Network'):
         with seq_size_col:
             st.write(" ")
             seq_size = st.number_input("Insert a number for the sequence size",
-                                    min_value=1, max_value=100, 
+                                    min_value=1, max_value=20, 
                                     value=5, step=1)
         
         with seq_size_info_col:
