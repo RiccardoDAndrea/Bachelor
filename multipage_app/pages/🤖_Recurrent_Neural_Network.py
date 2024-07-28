@@ -295,15 +295,16 @@ with st.expander('Data preprocessing'):
     with change_data_type_col_1:
         selected_columns_1 = st.multiselect("Choose your columns", df.columns, key='change_data_type_1')
         selected_dtype_1 = st.selectbox("Choose a data type", ['None','int64', 
-                                                               'float64', 'string',
-                                                               'datime', 'datetime64[ns]'], 
+                                                               'float64', 
+                                                               'string'], 
                                                                key='selectbox_1')
         
     with change_data_type_col_2:
         selected_columns_2 = st.multiselect("Choose your columns", df.columns, key='change_data_type_2')
-        selected_dtype_2 = st.selectbox("Choose a data type", ['None','int64', 
-                                                               'float64', 'string',
-                                                               'datime', 'datetime64[ns]'],
+        selected_dtype_2 = st.selectbox("Choose a data type", ['None',
+                                                               'int64', 
+                                                               'float64', 
+                                                               'string'],
                                                                key='selectbox_2')
 
     # Function to change data types
@@ -316,8 +317,7 @@ with st.expander('Data preprocessing'):
                     dataframe[columns] = dataframe[columns].apply(pd.to_numeric, errors='coerce').astype('float64')
                 elif dtype == "string":
                     dataframe[columns] = dataframe[columns].astype('string')
-                elif dtype == "datetime64[ns]":
-                    dataframe[columns] = pd.to_datetime(dataframe[columns], errors='coerce')        
+               
 
             except Exception as e:
                 st.error(f"Error converting columns {columns} to {dtype}: {e}")
@@ -476,7 +476,7 @@ with st.expander('Recurrent Neural Network'):
             train_bin_size = st.slider('Train Bin Size', min_value=1, max_value=100, step=1, value=10, format='%d', key='train_bin_size')
             hist_plot_1 = px.histogram(y_rounded, x=forecast_Var, nbins=train_bin_size, labels={'x': forecast_Var, 'y': 'Count'}, title='Histogram')
             hist_plot_1.update_layout(width=400, height=360)
-            st.plotly_chart(hist_plot_1)
+            st.plotly_chart(hist_plot_1, use_container_width=True)
 
         st.divider()
         #st.write(dataset.shape)
@@ -495,7 +495,7 @@ with st.expander('Recurrent Neural Network'):
                 st.write("Shape:", shape_str)
             
             with dtype_col:
-                st.write(f'The data type: {dataset.dtype}') # für übersichtlichkeit leer gelassen
+                st.write(f'The data type: {dataset.dtype}') 
 
             
             
@@ -506,7 +506,7 @@ with st.expander('Recurrent Neural Network'):
 
             # scaling the data using MinMaxScaler (beacause of the problem of vansihing gradient and exploding gradient)
             st.subheader('Scaled Data Overview:')
-            scaler = MinMaxScaler(feature_range=(0, 1))  # Auch QuantileTransformer kann ausprobiert werden
+            scaler = MinMaxScaler(feature_range=(0, 1)) 
             dataset = scaler.fit_transform(dataset)
             
             # get the shape of the scaled dataset
@@ -568,6 +568,7 @@ with st.expander('Recurrent Neural Network'):
                                     value=5, step=1)
         
         with seq_size_info_col:
+            st.write(" ")
             st.write(" ")
             st.info("Sequence size is the number of time steps to look back like a memory of the model.")
         
@@ -645,9 +646,6 @@ with st.expander('Recurrent Neural Network'):
                         """)
                 st.stop()
 
-
-
-
         # Create the model
         st.divider()
         st.subheader("Create the model Infrastructure:")
@@ -658,7 +656,6 @@ with st.expander('Recurrent Neural Network'):
         # Number of layers input
         number_layers = st.number_input('Number of Layers', min_value=1, max_value=5, 
                                         value=1, step=1)
-        #return_sequc = st.checkbox('Return Sequences', value=False) 
         
         st.divider()
         layer_types = []
@@ -670,12 +667,15 @@ with st.expander('Recurrent Neural Network'):
         for i in range(number_layers):
             st.write(f'Layer {i+1}')
             select_layer_typ_col, select_neurons_col, activation_col, col4 = st.columns(4)
+            
             with select_layer_typ_col:
                 layer_type = st.selectbox(f'Layer {i+1} Type', ('Dense', 'LSTM', 'GRU', 'Flatten'), key=f'layer_type_{i}')
                 layer_types.append(layer_type)
+            
             with select_neurons_col:
                 unit = st.number_input(f'Units in Layer {i+1}', min_value=1, max_value=512, value=64, step=1, key=f'units_{i}')
                 units.append(unit)
+            
             with activation_col:
                 if layer_type in ['LSTM', 'GRU']:
                     # activation = st.selectbox(f'Activation Function for Dense Layer {i+1}', ('None', 'relu', 'sigmoid', 'tanh', 'softmax'), key=f'activation_{i}')
@@ -790,7 +790,7 @@ with st.expander('Recurrent Neural Network'):
 
                 except Exception as e:
                     #st.write(e)
-                    st.error("An error occurred during model training:")
+                    st.error("An error occurred during model training:", str(e))
                     st.info("""
                     **Oops, something went wrong. Here are some suggestions for improvement:**
 
@@ -815,13 +815,22 @@ with st.expander('Recurrent Neural Network'):
                         ```
 
                     - Consider adding more layers or adjusting the existing ones to enhance performance.
+                            
+                    3. **Train and Test Data:**
+                            
+                    - The training and test data may not be correctly formatted.
+                    - Make sure that the sum of the train size and the test size is equal to 100%.
+                            For example:
+                            - Train Size: 70%
+                            - Test Size: 30%
+                            - Total Size: 100%
                     """)
 
                     st.stop()
 
                 
             try:
-                    # make predictions
+                # make predictions
                 trainPredict = model.predict(trainX)
                 testPredict = model.predict(testX)
                 # invert predictions
@@ -836,9 +845,28 @@ with st.expander('Recurrent Neural Network'):
                 except ValueError as e:
                     st.error(f"An error occurred during inverse transformation: {e}")
                     st.info("""
-                            This could be because you have used `return_sequences=True` in the last layer of an RNN (GRU or LSTM). 
-                            Please make sure that `return_sequences=False` is set in the last layer to get an output with the correct dimension. 
-                            correct dimension.
+                            1. **Output Layer Configuration**: Ensure that the output layer of your RNN model has only one neuron if this is a requirement. Having two or more neurons in the output layer might cause issues.
+
+                            2. **Layer Sequence Settings**: When using LSTM or GRU cells in your model, it is crucial to configure the `return_sequences` parameter correctly:
+                            - If you set `return_sequences=True` in one layer, the next layer should have `return_sequences=False`.
+
+                            **Recommended Model Architectures**
+
+                            *Option 1:*
+                            
+                                - LSTM Layer: 128 units, return_sequences=True, activation=relu
+                                - LSTM Layer: 128 units, return_sequences=False, activation=sigmoid
+                                - Dense Layer: 1 unit, activation=relu
+
+                            *Option 2:*
+
+                                - LSTM  Layer: 128 units, return_sequences=True, activation=relu
+                                - GRU   Layer: 128 units, return_sequences=False, activation=tanh
+                                - Dense Layer: 1 unit, activation=relu
+
+                            **Key Points**
+                            - **Output Layer**: Ensure the output layer has exactly one unit.
+                            - **Layer Configuration**: Pay attention to the `return_sequences` parameter settings for proper model functionality.
                             """)
                     st.stop()
 
@@ -861,8 +889,7 @@ with st.expander('Recurrent Neural Network'):
                 # Display plots
                 st.plotly_chart(fig_gradient, key='training_validation_loss')
 
-                
-
+                # calculate root mean squared error
                 def format_loss_name(loss_name):
                     return loss_name.replace("_", " ").title()
             
@@ -1030,21 +1057,28 @@ with st.expander('Recurrent Neural Network'):
                 if "could not broadcast input array from shape" in str(e):
                     st.error("Oops, an error occurred: could not broadcast input array from shape (14122,2) into shape (14122,1)")
                     st.info("""
-                            This issue may be caused by specifying two or more neurons in the output layer of your RNN model instead of just one. Please review your model configuration and ensure that the output layer has only one neuron if this is a requirement.
+                            1. **Output Layer Configuration**: Ensure that the output layer of your RNN model has only one neuron if this is a requirement. Having two or more neurons in the output layer might cause issues.
 
-                            Refer to the following architecture guide for proper configuration:
+                            2. **Layer Sequence Settings**: When using LSTM or GRU cells in your model, it is crucial to configure the `return_sequences` parameter correctly:
+                            - If you set `return_sequences=True` in one layer, the next layer should have `return_sequences=False`.
 
-                                LSTM,   128 units,    return_sequences=True,    (activation = relu)
-                                LSTM,   128 units,    return_sequences=False,   (activation = sigmoid)      
-                                Dense,  1 unit,       activation=relu
+                            **Recommended Model Architectures**
+
+                            *Option 1:*
                             
-                            or
+                                - LSTM Layer: 128 units, return_sequences=True, activation=relu
+                                - LSTM Layer: 128 units, return_sequences=False, activation=sigmoid
+                                - Dense Layer: 1 unit, activation=relu
 
-                                LSTM,   128 units,    return_sequences=True,    (activation = relu)
-                                GRU,    128 units,    return_sequences=False,   (activation = tanh)
-                                Dense,  1 unit,       activation=relu
-                            
-                            Ensure that the output layer has exactly one unit to meet the requirements.
+                            *Option 2:*
+
+                                - LSTM  Layer: 128 units, return_sequences=True, activation=relu
+                                - GRU   Layer: 128 units, return_sequences=False, activation=tanh
+                                - Dense Layer: 1 unit, activation=relu
+
+                            **Key Points**
+                            - **Output Layer**: Ensure the output layer has exactly one unit.
+                            - **Layer Configuration**: Pay attention to the `return_sequences` parameter settings for proper model functionality.
                             """)
                     st.stop()
                 else:
@@ -1083,28 +1117,33 @@ with st.expander('Recurrent Neural Network'):
         else:
             st.error(f"An unexpected error occurred: {e}")
             st.info("""
-                        Oops, something went wrong
-                        Here is a list of what could be improved :
-                        
-                        Your architecture does not fit.
-                        
-                        Use the following structure as a architecture guide :
-                            
-                            LSTM,   128 units,    return_sequence = True
-                            LSTM,   128 units,    return_sequence = False
-                            DENSE,  1 unit,      activation = relu 
+                    1. **Output Layer Configuration**: Ensure that the output layer of your RNN model has only one neuron if this is a requirement. Having two or more neurons in the output layer might cause issues.
+
+                    2. **Layer Sequence Settings**: When using LSTM or GRU cells in your model, it is crucial to configure the `return_sequences` parameter correctly:
+                    - If you set `return_sequences=True` in one layer, the next layer should have `return_sequences=False`.
+
+                    **Recommended Model Architectures**
+
+                    *Option 1:*
                     
-                            or
-                    
-                            LSTM,   128 units,    return_sequence = True
-                            GRU,    128 units,    return_sequence = False
-                            DENSE,  1 unit,      activation = relu 
-                        Keep in mind its a RNN Model so `return_sequence` is important. 
-                        Set it to True if you have more than 1 layer.                     
+                        - LSTM Layer: 128 units, return_sequences=True, activation=relu
+                        - LSTM Layer: 128 units, return_sequences=False, activation=sigmoid
+                        - Dense Layer: 1 unit, activation=relu
+
+                    *Option 2:*
+
+                        - LSTM  Layer: 128 units, return_sequences=True, activation=relu
+                        - GRU   Layer: 128 units, return_sequences=False, activation=tanh
+                        - Dense Layer: 1 unit, activation=relu
+
+                    **Key Points**
+                    - **Output Layer**: Ensure the output layer has exactly one unit.
+                    - **Layer Configuration**: Pay attention to the `return_sequences` parameter settings for proper model functionality.
                     """)
             st.stop()
 
     except TypeError as e:
+
         if  "can't multiply sequence by non-int of type 'float'" in str(e):
             st.error(f"An error occurred: {e}")
             st.info(f"""
@@ -1116,9 +1155,7 @@ with st.expander('Recurrent Neural Network'):
                     Please verify and correct the data type to ensure proper training of the model.
                     """)
 
-                                
-           
-            
+                
     except NameError as e:
         st.error(f"A NameError occurred: {e}")
         st.error("""This may be due to a variable or function name being used before it's defined. Please check your code and correct any naming issues.""")
@@ -1127,7 +1164,8 @@ with st.expander('Recurrent Neural Network'):
     except Exception as e:
         st.write(e)
         st.error(f"An unexpected error occurred: {e}")
-        st.error("""(2). This is an unknown error for us. Please report it to us so that we 
+        st.error("""
+                    (2). This is an unknown error for us. Please report it to us so that we 
                     can investigate and fix it. Contact: riccardo.dandrea@hs-osnabrück.de""")
         st.stop()
     
