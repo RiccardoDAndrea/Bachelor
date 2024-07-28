@@ -217,7 +217,7 @@ with st.expander('Data Description'):
 
 
 ##################################################################################################
-#############  D a t a _ p r e p r o c e s s i n g _ s t a r t #################################################
+#############  D a t a _ p r e p r o c e s s i n g _ s t a r t ###################################
 ##################################################################################################
 
 with st.expander('Data preprocessing'):
@@ -302,8 +302,7 @@ with st.expander('Data preprocessing'):
     with change_data_type_col_2:
         selected_columns_2 = st.multiselect("Choose your columns", df.columns, key='change_data_type_2')
         selected_dtype_2 = st.selectbox("Choose a data type", ['None','int64', 
-                                                               'float64', 'string',
-                                                               'datime', 'datetime64[ns]'],
+                                                               'float64', 'string', 'datetime64[ns]'],
                                                                key='selectbox_2')
 
     # Function to change data types
