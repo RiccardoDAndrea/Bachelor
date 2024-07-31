@@ -186,11 +186,17 @@ if df is None:
     st.sidebar.info('Please upload your dataset')
     
     st.markdown("""
-        Welcome to the Recurrent Neural Network
-        This is a simple example of how to create 
-        a Recurrent Neural Network using TensorFlow 
-        and Keras.
-        Please upload your dataset to get started
+    ### Create Your Own RNN Architecture 
+    """)
+
+    st.info(""" **Start by uploading your own data or using the data stored for you.** 📁""")
+
+    st.write("""        
+    1. You can then examine the data and make edits in the **data preprocessing expander**. 🔍🛠️
+
+    2. You also have the option to **visualize the data**. 📊📈
+
+    3. Finally, you can **build your own RNN architecture**. 🧠🔧
     """)
     st.lottie(Rnn_welcome_page_lottie, speed=1, width=800, height=550)
     st.stop()
