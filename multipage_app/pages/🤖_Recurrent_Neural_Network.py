@@ -61,7 +61,7 @@ st.title('Recurrent Neural Network')
 
 st.sidebar.title('Recurrent Neural Network')
 
-datasets = ['Upload here your data', 'Weather data for Germany','Yahoo finance API', 'Own dataset']
+datasets = ['Upload here your data', 'Weather data for Germany','Yahoo finance API']
 selected_dataset = st.sidebar.selectbox('Choose your dataset:', options=datasets)
 
 
@@ -119,7 +119,8 @@ def load_dataframe_from_url(url):
 # Load the dataset
 df = None
 if selected_dataset == 'Upload here your data':
-    st.write('Please upload your dataset')
+    file_uploader = st.sidebar.file_uploader('Upload your dataset', type=['csv'])
+    df = load_dataframe(file_uploader)
 
 elif selected_dataset == 'Weather data for Germany':
     dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Bachelor/main/data/processed/Weather_data.csv"
@@ -164,9 +165,7 @@ elif selected_dataset == 'Yahoo finance API':
         df.reset_index(inplace=True)  # Sreset the index
         df = df[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]  # get only the columns we need
 
-elif selected_dataset == 'Own dataset':
-    file_uploader = st.sidebar.file_uploader('Upload your dataset', type=['csv'])
-    df = load_dataframe(file_uploader)
+
 
 # # Display DataFrame if loaded
 # if df is not None:
