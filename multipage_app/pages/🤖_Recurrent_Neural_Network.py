@@ -61,7 +61,7 @@ st.title('Recurrent Neural Network')
 
 st.sidebar.title('Recurrent Neural Network')
 
-datasets = ['Upload here your data', 'Weather data for Germany','Covid 19 confirmed Cases', 'Yahoo finance API', 'Own dataset']
+datasets = ['Upload here your data', 'Weather data for Germany','Yahoo finance API', 'Own dataset']
 selected_dataset = st.sidebar.selectbox('Choose your dataset:', options=datasets)
 
 
@@ -125,9 +125,6 @@ elif selected_dataset == 'Weather data for Germany':
     dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Bachelor/main/data/processed/Weather_data.csv"
     df = load_dataframe_from_url(dataset_url)
 
-elif selected_dataset == 'Covid 19 confirmed Cases':
-    dataset_url = "https://raw.githubusercontent.com/RiccardoDAndrea/Exploring-the-power-of-rnns/main/confirmed_cases_by_country.csv"
-    df = load_dataframe_from_url(dataset_url)
 
 
 elif selected_dataset == 'Yahoo finance API':
