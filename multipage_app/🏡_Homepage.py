@@ -131,6 +131,13 @@ if 'Chatbot' in explination_homepage:
                 🌐✨ And as technology advances, chatbots are becoming even more 
                 sophisticated, able to handle complex queries and offer more 
                 personalized experiences. 🚀""")
+    st.info("""
+            👉 You can access the 🤖 Prime-Chatbot via Docker with the following command:
+
+            ```
+            docker pull riccardodandrea/prime-chatbot:latest
+            ```
+    """)
     
     st_lottie(chatbot_explanation_lottie, width=1200, height=400, 
               key="chatbot",
